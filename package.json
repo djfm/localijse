@@ -11,8 +11,11 @@
   "dependencies": {
     "async": "^0.9.0",
     "brunch": "^1.7.18",
+    "chai": "^1.9.2",
+    "chai-as-promised": "^4.1.1",
     "db-migrate": "^0.7.1",
     "mocha": "^2.0.1",
+    "mysql": "^2.5.3",
     "node-mysql": "^0.4.0"
   }
 }
