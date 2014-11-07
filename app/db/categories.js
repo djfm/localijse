@@ -1,4 +1,75 @@
 var q = require('q');
+var _ = require('underscore');
+
+function addToTree(tree, path)
+{
+	var item = path.shift();
+	if (!item) {
+		return tree;
+	}
+
+	if (typeof item === 'string') {
+		item = {
+			'name': item
+		};
+	}
+
+	if (!tree) {
+		return addToTree(item, path);
+	} else {
+		_.each(tree.children, function(child) {
+			if (child.name === item.name) {
+				if (item.hasOwnProperty('technical_data')) {
+					child.technical_data = item.technical_data;
+				}
+				return addToTree(child, path);
+			}
+		});
+
+		if (!tree.children) {
+			tree.children = [];
+		}
+
+		tree.children.push(addToTree(item, path));
+		return tree;
+	}
+}
+
+function numberTree (tree, pos) {
+	
+	if (pos === undefined) {
+		pos = 1;
+	}
+
+	tree.lft = pos;
+
+	if (!tree.children || tree.children.length === 0) {
+		tree.rgt = ++pos;
+		return ++pos;
+	}
+
+	_.each(tree.children, function (child) {
+		pos = numberTree(child, ++pos);
+	});
+
+	tree.rgt = pos;
+
+	return ++pos;
+}
+
+function flattenTree (tree) {
+	var objects = [];
+	if (!tree) {
+		return objects;
+	}
+
+	objects.push(_.omit(tree, 'children'));
+	_.each(tree.children, function (child) {
+		objects = objects.concat(flattenTree(child));
+	});
+
+	return objects;
+}
 
 /**
  * Adds a path to the category tree.
@@ -17,20 +88,38 @@ function addPath (connection, path) {
 	getTree(connection)
 	.fail(d.reject)
 	.then(function (tree) {
-		if (!tree) {
-			tree = {};
-		}
-	});
+		tree = addToTree(tree, path.slice(0));
+		numberTree(tree);
+		var rows = flattenTree(tree);
+		
+		q
+		.ninvoke(connection, 'query', 'LOCK TABLES Category WRITE')
+		.done(function (err, result) {
+			console.log("hi");
+			q.ninvoke(connection, 'query', 'UNLOCK TABLES').done(function() {
+				if (err) {
+					d.reject(err);
+				} else {
+					d.resolve();
+				}
+			});
+		});
+		//.done(q.nbind(connection.query, 'UNLOCK TABLES'));
 
-	d.resolve(true);
+		/*q
+		.nfcall(connection.query, 'LOCK TABLE Category WRITE')
+		.then(function() {
+
+		});*/
+	});
 
 	return d.promise;
 }
 
-/* jshint maxdepth:4 */
-
 function rebuildTreeFromSortedRows(rows)
 {
+	/* jshint maxdepth:4 */
+
 	var stack = [];
 	for (var r = 0, l = rows.length; r < l; ++r) {
 		
@@ -55,7 +144,6 @@ function rebuildTreeFromSortedRows(rows)
 function getTree (connection) {
 	var d = q.defer();
 
-	d.resolve(true);
 	connection.query('SELECT * FROM Category ORDER BY lft DESC', function (err, rows) {
 		if (err) {
 			d.reject(err);
