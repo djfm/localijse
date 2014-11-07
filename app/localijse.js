@@ -2,6 +2,7 @@ var fs = require('fs');
 var mysql = require('mysql');
 var q = require('q');
 var spawn = require('child_process').spawn;
+var _ = require('underscore');
 
 var categories = require('./db/categories');
 
@@ -14,23 +15,22 @@ function Localijse(config) {
 		var d = q.defer();
 
 		if (config.environment === 'test') {
-			
-			connection.query('DROP DATABASE IF EXISTS ??', [config.database.database], function (err) {
 
+			var connection = mysql.createConnection(_.omit(config.database, 'database'));
+
+			connection.query('DROP DATABASE IF EXISTS ??', [config.database.database], function (err) {
 				if (err) {
 					d.reject(err);
 				} else {
-					var migrate = spawn(
-						'node_modules/.bin/db-migrate',
-						['up', '--env', config.environment],
-						{cwd: __dirname + '/../'}
-					);
-
 					connection.query('CREATE DATABASE ??', [config.database.database], function (err) {
 						if (err) {
 							d.reject('Could not create database: ' + err);
 						} else {
-							migrate.on('close', function(code) {
+							spawn(
+								'node_modules/.bin/db-migrate',
+								['up', '--env', config.environment],
+								{cwd: __dirname + '/../'}
+							).on('close', function(code) {
 								if (code === 0) {
 									d.resolve();
 								} else {
@@ -42,7 +42,7 @@ function Localijse(config) {
 				}
 			});
 		} else {
-			d.reject('Will not resetDatabase in `' + config.environment + '` environment, only in `test`.');
+			d.reject('Will not resetDatabase in `' + config.environment + '` environment, unsafe.');
 		}
 
 		return d.promise;
