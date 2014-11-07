@@ -15,11 +15,15 @@ function addToTree(tree, path)
 	}
 
 	if (!tree) {
+		item.dirty = true;
 		return addToTree(item, path);
 	} else {
 		_.each(tree.children, function(child) {
 			if (child.name === item.name) {
 				if (item.hasOwnProperty('technical_data')) {
+					if (child.technical_data !== item.technical_data) {
+						child.dirty = true;
+					}
 					child.technical_data = item.technical_data;
 				}
 				return addToTree(child, path);
@@ -29,6 +33,8 @@ function addToTree(tree, path)
 		if (!tree.children) {
 			tree.children = [];
 		}
+
+		item.dirty = true;
 
 		tree.children.push(addToTree(item, path));
 		return tree;
@@ -41,10 +47,19 @@ function numberTree (tree, pos) {
 		pos = 1;
 	}
 
+	if (pos !== tree.lft) {
+		tree.dirty = true;
+	}
 	tree.lft = pos;
 
 	if (!tree.children || tree.children.length === 0) {
-		tree.rgt = ++pos;
+		++pos;
+
+		if (pos !== tree.rgt) {
+			tree.dirty = true;
+		}
+		tree.rgt = pos;
+
 		return ++pos;
 	}
 
@@ -52,6 +67,9 @@ function numberTree (tree, pos) {
 		pos = numberTree(child, ++pos);
 	});
 
+	if (pos !== tree.rgt) {
+		tree.dirty = true;
+	}
 	tree.rgt = pos;
 
 	return ++pos;
@@ -69,6 +87,15 @@ function flattenTree (tree) {
 	});
 
 	return objects;
+}
+
+function storeRow(connection, row) {
+	if (row.hasOwnProperty('id')) {
+
+	} else {
+		var query = "INSERT INTO Category (name, lft, rgt, technical_data) VALUES (?, ?, ?, ?)";
+		return q.ninvoke(connection, 'query', query, [row.name, row.lft, row.rgt, row.technical_data]);
+	}
 }
 
 /**
@@ -94,16 +121,12 @@ function addPath (connection, path) {
 		
 		q
 		.ninvoke(connection, 'query', 'LOCK TABLES Category WRITE')
-		.done(function (err, result) {
-			console.log("hi");
-			q.ninvoke(connection, 'query', 'UNLOCK TABLES').done(function() {
-				if (err) {
-					d.reject(err);
-				} else {
-					d.resolve();
-				}
-			});
-		});
+		.then(function() {
+			return q.all(_.map(rows, storeRow.bind(null, connection)));
+		})
+		.fin(q.nbind(connection.query, connection, 'UNLOCK TABLES'))
+		.then(d.resolve)
+		.fail(d.reject);
 		//.done(q.nbind(connection.query, 'UNLOCK TABLES'));
 
 		/*q

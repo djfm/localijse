@@ -42,7 +42,6 @@ describe('Categories', function() {
 						rgt: 5,
 						name: 'bankwire',
 						technical_data: null,
-						children: []
 					}]
 				}]
 			}]
