@@ -50,8 +50,8 @@ function Localijse(config) {
 
 	// Proxy'ed functions:
 
-	this.addCategoryPath = categories.addPath.bind(null, connection);
-	this.getCategoryTree = categories.getTree.bind(null, connection);
+	this.addCategoryPath = categories.addCategoryPath.bind(null, connection);
+	this.getCategoryTree = categories.getCategoryTree.bind(null, connection);
 }
 
 exports.init = function (environment) {
