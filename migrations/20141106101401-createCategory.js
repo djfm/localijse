@@ -7,7 +7,7 @@ exports.up = function(db, callback) {
 		lft INT UNSIGNED NOT NULL, \
 		rgt INT UNSIGNED NOT NULL, \
 		name VARCHAR (128) NOT NULL, \
-		technical_data MEDIUMBLOB NULL, \
+		technical_data MEDIUMTEXT NULL, \
 		CONSTRAINT UNIQUE KEY (lft, rgt, name), \
 		KEY (lft, rgt) \
 	) ENGINE INNODB, CHARACTER SET utf8, COLLATE utf8_bin";
