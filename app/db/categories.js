@@ -25,10 +25,13 @@ function storeRow(connection, row) {
  * 
  */
 function addCategoryPath (connection, path) {
+	return addCategoryTree(connection, treeHelper.makeTreeFromPath(path));
+}
+
+function addCategoryTree(connection, treeToAdd) {
 	return getCategoryTree(connection)
 	.then(function (tree) {
-
-		tree = treeHelper.mergePath(tree, path.slice(0));
+		tree = treeHelper.mergeTrees(tree, treeToAdd);
 		tree = treeHelper.number(tree);
 
 		var rows = treeHelper.flatten(tree);
@@ -59,3 +62,4 @@ function getCategoryTree (connection) {
 
 exports.getCategoryTree = getCategoryTree;
 exports.addCategoryPath = addCategoryPath;
+exports.addCategoryTree = addCategoryTree;
