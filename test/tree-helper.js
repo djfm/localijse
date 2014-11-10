@@ -39,6 +39,20 @@ describe("makeTreeFromPath", function () {
 			]
 		});
 	});
+	it ("should attach my data to the end of the tree", function () {
+		treeHelper.makeTreeFromPath(["a", "b", "c"], function (endNode) {
+			endNode.messages = [1, 2];
+		}).should.deep.equal({
+			name: 'a',
+			children: [{
+				name: 'b',
+				children: [{
+					name: 'c',
+					messages: [1, 2]
+				}]
+			}]
+		});
+	});
 });
 
 describe("mergeTrees", function () {
@@ -100,6 +114,42 @@ describe("mergeTrees", function () {
 				]
 			}
 		);
+	});
+	it ("should use a custom merge function when properties collide", function () {
+		treeHelper.mergeTrees({
+			name: 'a',
+			children: [{
+				name: 'b',
+				children: [{
+					name: 'c',
+					messages: ['x']
+				}]
+			}]
+		},{
+			name: 'a',
+			children: [{
+				name: 'b',
+				children: [{
+					name: 'c',
+					messages: ['y']
+				}]
+			}]
+		}, function (property, oldValue, newValue) {
+			if (property === 'messages') {
+				return oldValue.concat(newValue);
+			} else {
+				return newValue;
+			}
+		}).should.deep.equal({
+			name: 'a',
+			children: [{
+				name: 'b',
+				children: [{
+					name: 'c',
+					messages: ['x', 'y']
+				}]
+			}]
+		});
 	});
 	it("should merge a path into a tree", function () {
 		treeHelper.mergePath({name: 'a', children: [{name: 'b'}]}, ['a', 'b', 'c', 'd']).should.deep.equal({
@@ -241,5 +291,71 @@ describe("unFlattenNumberedTree", function () {
 				name: 'c', lft: 4, rgt: 5
 			}]
 		});
+	});
+});
+
+describe("getNodesAtDepth", function () {
+	it ("Should find nodes at depth 1", function () {
+		treeHelper.getNodesAtDepth({
+			name: 'a',
+			children: [{name: 'b'}]
+		}, 1)
+		.should.deep.equal([{
+			name: 'a',
+			children: [{name: 'b'}]
+		}]);
+	});
+	it ("Should find nodes at depth 2", function () {
+		treeHelper.getNodesAtDepth({
+			name: 'a',
+			children: [{name: 'b'}]
+		}, 2)
+		.should.deep.equal([{
+			name: 'b'
+		}]);
+	});
+	it ("Should find nodes at depth 3", function () {
+		treeHelper.getNodesAtDepth({
+			name: 'a',
+			children: [{name: 'b', children: [{name: 'c'}]}, {name: 'd', children: [{name: 'e'}]}]
+		}, 3)
+		.should.deep.equal([{
+			name: 'c'
+		},{
+			name: 'e'
+		}]);
+	});
+});
+
+describe ("reduce tree", function () {
+	it("Should reduce a one node tree", function () {
+		treeHelper.reduce({
+			name: 'a', k: 1
+		}, function (soFar, node) {
+			return soFar + node.k;
+		}, 0).should.equal(1);
+	});
+	it("Should reduce 2 node tree", function () {
+		treeHelper.reduce({
+			name: 'a', k: 1,
+			children: [{
+				name: 'b', k: 2
+			}]
+		}, function (soFar, node) {
+			return soFar + node.k;
+		}, 0).should.equal(3);
+	});
+	it("Should reduce 4 node tree", function () {
+		treeHelper.reduce({
+			name: 'a', k: 1,
+			children: [{
+				name: 'b', k: 2,
+				children: [{name: 'c', k: 3}]
+			}, {
+				name: 'd', k: 4
+			}]
+		}, function (soFar, node) {
+			return soFar + node.k;
+		}, 0).should.equal(10);
 	});
 });

@@ -1,10 +1,11 @@
-var fs = require('fs');
-var mysql = require('mysql');
-var q = require('q');
-var spawn = require('child_process').spawn;
-var _ = require('underscore');
+var fs 			= require('fs');
+var mysql 		= require('mysql');
+var q 			= require('q');
+var spawn 		= require('child_process').spawn;
+var _ 			= require('underscore');
 
-var categories = require('./db/categories');
+var categories 	= require('./db/categories');
+var messages 	= require('./db/messages');
 
 function Localijse(config) {
 
@@ -50,8 +51,14 @@ function Localijse(config) {
 
 	// Proxy'ed functions:
 
-	this.addCategoryPath = categories.addCategoryPath.bind(null, connection);
-	this.getCategoryTree = categories.getCategoryTree.bind(null, connection);
+	this.addCategoryPath = categories.addCategoryPath.bind(this, connection);
+	this.addCategoryTree = categories.addCategoryTree.bind(this, connection);
+	this.getCategoryTree = categories.getCategoryTree.bind(this, connection);
+
+	this.findMessages	 = messages.findMessages.bind(this, connection);
+	this.updateMessages  = messages.updateMessages.bind(this, connection);
+	
+	this.addTranslation = null;
 }
 
 exports.init = function (environment) {

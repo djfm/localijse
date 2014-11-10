@@ -10,12 +10,15 @@ function makeNode (item) {
 	return item;
 }
 
-function makeTreeFromPath (path) {
+function makeTreeFromPath (path, withEnd) {
 	var item, root;
 	while ((item = path.pop())) {
 		var node = makeNode(item);
 		if (!root) {
 			root = node;
+			if (withEnd) {
+				withEnd(root);
+			}
 		} else {
 			node.children = [root];
 			root = node;
@@ -24,7 +27,7 @@ function makeTreeFromPath (path) {
 	return root;
 }
 
-function mergeTrees (t, u) {
+function mergeTrees (t, u, mergeFunction) {
 	if (!u) {
 		return t;
 	}
@@ -42,7 +45,15 @@ function mergeTrees (t, u) {
 	}
 
 	if (t.name === u.name) {
-		t = _.extend(t, _.omit(u, 'children'));
+		_.each(u, function (value, property) {
+			if (property !== 'children') {
+				if (!t.hasOwnProperty(property) || !mergeFunction) {
+					t[property] = value;
+				} else {
+					t[property] = mergeFunction(property, t[property], value);
+				}
+			}
+		});
 
 		if (u.children && u.children.length > 0) {
 			if (!t.children || t.children.length === 0) {
@@ -58,7 +69,7 @@ function mergeTrees (t, u) {
 				// Handle common children and children only found in t
 				_.each(t.children, function (a) {
 					if (childrenOfU[a.name]) {
-						newChildren.push(mergeTrees(a, childrenOfU[a.name]));
+						newChildren.push(mergeTrees(a, childrenOfU[a.name], mergeFunction));
 						delete childrenOfU[a.name];
 					} else {
 						newChildren.push(a);
@@ -149,6 +160,34 @@ function unFlattenNumberedTree(rows)
 	return stack[0];
 }
 
+function getNodesAtDepth(t, depth) {
+	if (depth < 1) {
+		return [];
+	} else if (depth === 1) {
+		return [t];
+	} else {
+		if (!t.children) {
+			return [];
+		} else {
+			return t.children.reduce(function (prev, current) {
+				return prev.concat(getNodesAtDepth(current, depth - 1));
+			}, []);
+		}
+	}
+}
+
+function reduce(t, red, initialValue) {
+	initialValue = red(initialValue, t);
+
+	if (t.children) {
+		initialValue = t.children.reduce(function (soFar, node) {
+			return reduce(node, red, soFar);
+		}, initialValue);
+	}
+
+	return initialValue;
+}
+
 exports.makeNode = makeNode;
 exports.makeTreeFromPath = makeTreeFromPath;
 exports.mergeTrees = mergeTrees;
@@ -156,3 +195,5 @@ exports.mergePath = mergePath;
 exports.flatten = flatten;
 exports.number = number;
 exports.unFlattenNumberedTree = unFlattenNumberedTree;
+exports.getNodesAtDepth = getNodesAtDepth;
+exports.reduce = reduce;
