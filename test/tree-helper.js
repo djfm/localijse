@@ -359,3 +359,30 @@ describe ("reduce tree", function () {
 		}, 0).should.equal(10);
 	});
 });
+
+describe("Get node at path", function () {
+	it("should not find something that does not exist", function () {
+		/* jshint expr:true */
+		expect(treeHelper.getNodeAtPath({name: 'a'}, ['b'])).to.be.null;
+	});
+
+	it("should bail on an empty path", function () {
+		/* jshint expr:true */
+		expect(treeHelper.getNodeAtPath({name: 'a'}, [])).to.be.null;
+	});
+
+	it("should get node at root level", function () {
+		/* jshint expr:true */
+		treeHelper.getNodeAtPath({name: 'a'}, ['a']).name.should.equal('a');
+	});
+
+	it("should get node at depth 2", function () {
+		/* jshint expr:true */
+		treeHelper.getNodeAtPath({name: 'a', children: [{name: 'b'}]}, ['a', 'b']).name.should.equal('b');
+	});
+
+	it("should get node at depth 3", function () {
+		/* jshint expr:true */
+		treeHelper.getNodeAtPath({name: 'a', children: [{name: 'b'}, {name: 'c', children: [{name: 'd'}]}]}, ['a', 'c', 'd']).name.should.equal('d');
+	});
+});

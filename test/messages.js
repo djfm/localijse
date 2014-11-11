@@ -171,7 +171,8 @@ describe("Messages update", function () {
 				path: 'PrestaShop'
 			});
 		}).then(function (paginator) {
-			paginator.count().should.be(1);
+			paginator.totalCount.should.equal(1);
+			done();
 		}).fail(function (err) {
 			done(err);
 		});

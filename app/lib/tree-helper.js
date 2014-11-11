@@ -176,6 +176,35 @@ function getNodesAtDepth(t, depth) {
 	}
 }
 
+function _getNodeAtPath(t, path) {
+	var current = path.shift();
+	if (!current) {
+		return null;
+	}
+	if (t.name !== current) {
+		return null;
+	}
+
+	if (path.length === 0) {
+		return t;
+	}
+
+	if (t.children) {
+		for (var i = 0, len = t.children.length; i < len; ++i) {
+			var node = getNodeAtPath(t.children[i], path);
+			if (node) {
+				return node;
+			}
+		}
+	}
+
+	return null;
+}
+
+function getNodeAtPath(t, path) {
+	return _getNodeAtPath(t, path.slice(0));
+}
+
 function reduce(t, red, initialValue) {
 	initialValue = red(initialValue, t);
 
@@ -197,3 +226,4 @@ exports.number = number;
 exports.unFlattenNumberedTree = unFlattenNumberedTree;
 exports.getNodesAtDepth = getNodesAtDepth;
 exports.reduce = reduce;
+exports.getNodeAtPath = getNodeAtPath;

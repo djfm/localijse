@@ -6,6 +6,7 @@ var _ 			= require('underscore');
 
 var categories 	= require('./db/categories');
 var messages 	= require('./db/messages');
+var search	 	= require('./db/search');
 
 function Localijse(config) {
 
@@ -17,7 +18,7 @@ function Localijse(config) {
 
 		if (config.environment === 'test') {
 
-			var connection = mysql.createConnection(_.omit(config.database, 'database'));
+			var connection = mysql.createPool(_.omit(config.database, 'database'));
 
 			connection.query('DROP DATABASE IF EXISTS ??', [config.database.database], function (err) {
 				if (err) {
@@ -55,7 +56,7 @@ function Localijse(config) {
 	this.addCategoryTree = categories.addCategoryTree.bind(this, connection);
 	this.getCategoryTree = categories.getCategoryTree.bind(this, connection);
 
-	this.findMessages	 = messages.findMessages.bind(this, connection);
+	this.findMessages	 = search.findMessages.bind(this, connection);
 	this.updateMessages  = messages.updateMessages.bind(this, connection);
 	
 	this.addTranslation = null;

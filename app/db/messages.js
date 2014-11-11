@@ -200,10 +200,5 @@ function insertMessages(connection, data) {
 	}, q(null));
 }
 
-function findMessages (connection, query) {
-	return q(null);
-}
-
 exports.updateMessages = updateMessages;
 exports.standardizeMessage = standardizeMessage;
-exports.findMessages = findMessages;
