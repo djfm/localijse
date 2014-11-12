@@ -18,7 +18,7 @@ function Localijse(config) {
 
 		if (config.environment === 'test') {
 
-			var connection = mysql.createPool(_.omit(config.database, 'database'));
+			var connection = mysql.createConnection(_.omit(config.database, 'database'));
 
 			connection.query('DROP DATABASE IF EXISTS ??', [config.database.database], function (err) {
 				if (err) {
