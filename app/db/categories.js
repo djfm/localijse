@@ -1,16 +1,11 @@
 var q = require('q');
 var _ = require('underscore');
+
+var mysqhelp   = require('../lib/mysqhelp');
 var treeHelper = require('../lib/tree-helper');
 
 function storeRow(connection, row) {
-	var query;
-	if (row.hasOwnProperty('id')) {
-		query = "UPDATE Category SET ? WHERE id = ?";
-		return q.ninvoke(connection, 'query', query, [_.omit(row, 'id'), row.id]);
-	} else {
-		query = "INSERT INTO Category (name, lft, rgt, technical_data) VALUES (?, ?, ?, ?)";
-		return q.ninvoke(connection, 'query', query, [row.name, row.lft, row.rgt, row.technical_data]);
-	}
+	return mysqhelp.save(connection, 'Category', row, ['name', 'lft', 'rgt', 'technical_data']);
 }
 
 /**
