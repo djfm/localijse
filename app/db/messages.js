@@ -3,6 +3,7 @@ var _ 			= require('underscore');
 
 var categories  = require('../db/categories');
 var treeHelper 	= require('../lib/tree-helper');
+var mysqhelp 	= require('../lib/mysqhelp');
 
 function standardizeMessage (obj) {
 
@@ -78,8 +79,6 @@ function updateMessages (connection, messages) {
 
 	/* Enter the promise land */
 
-	var vendorId;
-
 	// update the category tree
 	return categories.addCategoryTree(connection, cats)
 	// retrieve updated categories
@@ -103,29 +102,15 @@ function updateMessages (connection, messages) {
 					     WHERE c.lft BETWEEN ? AND ? \
 					    ';
 
-			return soFar.then(function () {
-				return q.ninvoke(connection, 'query', query, [k.lft, k.rgt]);
-			});
+			return soFar.then(mysqhelp.query.bind(null, connection, query, [k.lft, k.rgt]));
 		}, q(null));
 	})
 	// get vendor id
 	.then(function() {
-		return q.ninvoke(connection, 'query', 'INSERT IGNORE INTO Vendor (name) VALUES (?)', [cats.name])
-		.then(function(op) {
-			if (op[0].insertId > 0) {
-				vendorId = op[0].insertId;
-				return q(vendorId);
-			} else {
-				return q.ninvoke(connection, 'query', 'SELECT id FROM Vender WHERE name = ?', [cats.name])
-				.then(function (rows) {
-					vendorId = rows[0].id;
-					return q(vendorId);
-				});
-			}
-		});
+		return mysqhelp.insertIgnore(connection, 'Vendor', {name: cats.name});
 	})
 	// store all the messages
-	.then(function () {
+	.then(function (vendorId) {
 		return treeHelper.reduce(cats, function (soFar, node) {
 			return soFar.then(function (nextPos) {
 
@@ -153,44 +138,20 @@ function insertMessages(connection, data) {
 		return soFar.then(function () {
 
 			// insert into Message and get Id
-			return q.ninvoke(connection, 'query', 'INSERT IGNORE INTO Message (message) VALUES (?)', [message.message])
-			.then(function (op) {
-				if (op[0].insertId > 0) {
-					return q(op[0].insertId);
-				} else {
-					return q.ninvoke(connection, 'query', 'SELECT id FROM Message WHERE message = ?', [message.message])
-					.then(function (rows) {
-						return q(rows[0].id);
-					});
-				}
-			})
+			return mysqhelp.insertIgnore(connection, 'Message', {message: message.message})
 			// insert into contextualizedMessage and get id
 			.then(function (messageId) {
-				return q.ninvoke(
-					connection,
-					'query',
-					'INSERT IGNORE INTO ContextualizedMessage (vendor_id, message_id, context, plurality) VALUES (?, ?, ?, ?)',
-					[data.vendorId, messageId, message.context, message.plurality]
-				).then(function (op) {
-					if (op[0].insertId > 0) {
-						return q(op[0].insertId);
-					} else {
-						return q.ninvoke(
-							connection,
-							'query',
-							'SELECT id FROM ContextualizedMessage WHERE vendor_id = ? AND message_id = ? AND context = ? AND plurality = ?',
-							[data.vendorId, messageId, message.context, message.plurality]
-						).then(function (rows) {
-							return rows[0].id;
-						});
-					}
+				return mysqhelp.insertIgnore(connection, 'ContextualizedMessage', {
+					vendor_id: data.vendorId,
+					message_id: messageId,
+					context: message.context,
+					plurality: message.plurality
 				});
 			})
 			// insert into classification
 			.then(function (contextualizedMessageId) {
-				return q.ninvoke(
+				return mysqhelp.query(
 					connection,
-					'query',
 					'INSERT IGNORE INTO Classification (category_id, contextualized_message_id, position) VALUES (?, ?, ?)',
 					[data.categoryId, contextualizedMessageId, data.nextPos + pos]
 				);
