@@ -2,9 +2,8 @@
 
 exports.up = function(db, callback) {
 	
-	var query = "CREATE TABLE MappingHistory (\
+	var query = "CREATE TABLE MappingVersion (\
 		id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, \
-		mapping_id INT UNSIGNED NOT NULL, \
 		translation_id INT UNSIGNED NOT NULL, \
 		mapping_status_id INT UNSIGNED NOT NULL, \
 		created_by INT UNSIGNED NOT NULL, \
@@ -17,7 +16,6 @@ exports.up = function(db, callback) {
 		KEY (reviewed_by), \
 		KEY (created_at), \
 		KEY (updated_at), \
-		CONSTRAINT FOREIGN KEY (mapping_id) REFERENCES Mapping (id), \
 		CONSTRAINT FOREIGN KEY (translation_id) REFERENCES Translation (id), \
 		CONSTRAINT FOREIGN KEY (mapping_status_id) REFERENCES MappingStatus (id), \
 		CONSTRAINT FOREIGN KEY (created_by) REFERENCES User (id), \
@@ -28,5 +26,5 @@ exports.up = function(db, callback) {
 };
 
 exports.down = function(db, callback) {
-	db.dropTable('MappingHistory', callback);
+	db.dropTable('MappingVersion', callback);
 };
