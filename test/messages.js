@@ -21,7 +21,7 @@ describe("Messages", function () {
 			};
 			messages.standardizeMessage(message).should.deep.equal(message);
 		});
-		it ("Should reject a message with a too short path", function () {
+		it ("Should reject a message with a too short path (< 3)", function () {
 			/* jshint expr:true */
 			expect(messages.standardizeMessage({
 				path: ['vendor'],
@@ -174,6 +174,61 @@ describe("Messages", function () {
 				});
 			}).then(function (paginator) {
 				paginator.totalCount.should.equal(1);
+				done();
+			}).fail(function (err) {
+				done(err);
+			});
+		});
+
+		it ("should replace the messages", function (done) {
+			localijse.updateMessages([{
+				path: 'PrestaShop/PrestaShop/1.6.0.9/Back Office',
+				context: 'title',
+				message: 'hello'
+			}]).then(function () {
+				return localijse.findMessages({
+					path: 'PrestaShop'
+				});
+			}).then(function (paginator) {
+				paginator.totalCount.should.equal(1);
+				done();
+			}).fail(function (err) {
+				done(err);
+			});
+		});
+
+		it ("should be able to re-add the first message", function (done) {
+			localijse.updateMessages([{
+				path: 'PrestaShop/PrestaShop/1.6.0.9/Back Office',
+				context: 'button',
+				message: 'save'
+			}]).then(function () {
+				return localijse.findMessages({
+					path: 'PrestaShop'
+				});
+			}).then(function (paginator) {
+				paginator.totalCount.should.equal(1);
+				done();
+			}).fail(function (err) {
+				done(err);
+			});
+		});
+
+		it ("should add 2 messages", function (done) {
+			localijse.updateMessages([{
+				path: 'PrestaShop/PrestaShop/1.6.0.9/Back Office',
+				context: 'button',
+				message: 'save'
+			},{
+				path: 'PrestaShop/PrestaShop/1.6.0.9/Back Office',
+				context: 'button',
+				message: 'cancel'
+			}]).then(function () {
+				return localijse.findMessages({
+					path: 'PrestaShop'
+				});
+			}).then(function (paginator) {
+				paginator.totalCount.should.equal(2);
 				done();
 			}).fail(function (err) {
 				done(err);
