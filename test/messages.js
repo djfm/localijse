@@ -59,7 +59,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: null
+				plurality: 0
 			});
 
 			messages.standardizeMessage({
@@ -70,7 +70,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: null
+				plurality: 0
 			});
 		});
 
@@ -83,7 +83,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: null
+				plurality: 0
 			});
 
 			messages.standardizeMessage({
@@ -107,7 +107,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: null
+				plurality: 0
 			});
 
 			messages.standardizeMessage({
@@ -131,7 +131,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: null
+				plurality: 0
 			});
 
 			messages.standardizeMessage({
@@ -229,6 +229,40 @@ describe("Messages", function () {
 				});
 			}).then(function (paginator) {
 				paginator.totalCount.should.equal(2);
+				done();
+			}).fail(function (err) {
+				done(err);
+			});
+		});
+
+		it ("should add 1 message to another project without touching the classifications from the existing one", function (done) {
+			localijse.updateMessages([{
+				path: 'PrestaShop/PrestaShop/1.6.0.11/Back Office',
+				context: 'label',
+				message: 'hello'
+			}]).then(function () {
+				return localijse.findMessages({
+					path: 'PrestaShop'
+				});
+			}).then(function (paginator) {
+				paginator.totalCount.should.equal(3);
+				done();
+			}).fail(function (err) {
+				done(err);
+			});
+		});
+
+		it ("should add a duplicated message under another project", function (done) {
+			localijse.updateMessages([{
+				path: 'PrestaShop/PrestaShop/1.6.0.7/Back Office',
+				context: 'label',
+				message: 'hello'
+			}]).then(function () {
+				return localijse.findMessages({
+					path: 'PrestaShop'
+				});
+			}).then(function (paginator) {
+				paginator.totalCount.should.equal(3);
 				done();
 			}).fail(function (err) {
 				done(err);

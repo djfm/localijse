@@ -60,9 +60,12 @@ function insertIgnore(connection, tableName, object) {
 		if (res.insertId > 0) {
 			return q(res.insertId);
 		} else {
-			var selectSQL = 'SELECT id FROM ?? WHERE ?';
-			return query(connection, selectSQL, [tableName, object]).then(function (rows) {
-
+			var selectSQL = 'SELECT id FROM ?? WHERE ' + toEqPlaceHolders(columns);
+			return query(
+				connection,
+				selectSQL,
+				[tableName].concat(toColumnsAndValues(columns, object))
+			).then(function (rows) {
 				return rows[0].id;
 			});
 		}
@@ -71,6 +74,17 @@ function insertIgnore(connection, tableName, object) {
 
 function toValues(columns, object) {
 	return _.map(columns, function (name) { return object[name]; });
+}
+
+function toColumnsAndValues(columns, object) {
+	var arr = [];
+
+	_.each(columns, function (name) {
+		arr.push(name);
+		arr.push(object[name]);
+	});
+
+	return arr;
 }
 
 function toPlaceHolders(columns, placeHolder) {
@@ -83,6 +97,12 @@ function toColumnPlaceHolders(columns) {
 
 function toValuePlaceHolders(columns) {
 	return toPlaceHolders(columns, '?');
+}
+
+function toEqPlaceHolders(columns) {
+	return _.map(columns, function () {
+		return '?? = ?';
+	}).join(' AND ');
 }
 
 exports.save = save;

@@ -26,7 +26,7 @@ function standardizeMessage (obj) {
 	}
 
 	if (!obj.plurality) {
-		obj.plurality = null;
+		obj.plurality = 0;
 	} else if (+obj.plurality > 1) {
 		obj.plurality = 2;
 	} else {
@@ -48,10 +48,10 @@ function standardizeMessage (obj) {
  * 		message: 	a string
  * 		context: 	a string, optional, defaults to ''
  * 		plurality:  optional, the plurality of the message:
- * 					- null if plurality is not to be taken into account
+ * 					- 0 if plurality is not to be taken into account
  * 					- 1 for singular case
  * 					- 2 for plural case
- * 					defaults to null, falsey values are standardized to null, numbers > 1 are standardized to 2, anything else treated as 1
+ * 					defaults to 0, falsey values are standardized to null, numbers > 1 are standardized to 2, anything else treated as 1
  * 					
  * }
  * 
@@ -90,21 +90,6 @@ function updateMessages (connection, messages) {
 		cats = treeHelper.mergeTrees(tree, cats);
 		return q(cats);
 	})
-	// remove classifications of depth >= 3
-	.then(function () {
-		var toKill = treeHelper.getNodesAtDepth(cats, 3);
-		return toKill.reduce(function (soFar, k) {
-			
-			/* jshint multistr:true */
-
-			var query = 'DELETE Classification FROM Classification \
-					     INNER JOIN Category c ON c.id = Classification.category_id \
-					     WHERE c.lft BETWEEN ? AND ? \
-					    ';
-
-			return soFar.then(mysqhelp.query.bind(null, connection, query, [k.lft, k.rgt]));
-		}, q(null));
-	})
 	// get vendor id
 	.then(function() {
 		return mysqhelp.insertIgnore(connection, 'Vendor', {name: cats.name});
@@ -115,12 +100,19 @@ function updateMessages (connection, messages) {
 			return soFar.then(function (nextPos) {
 
 				if (node.messages) {
-					return insertMessages(connection, {
-						vendorId: vendorId,
-						categoryId: node.id,
-						nextPos: nextPos,
-						messages: node.messages
-					}).then(function () {
+					// clean the subtree
+					return killClassificationsUnderNode(connection, node)
+					// insert the messages
+					.then(function () {
+						return insertMessages(connection, {
+							vendorId: vendorId,
+							categoryId: node.id,
+							nextPos: nextPos,
+							messages: node.messages
+						});
+					})
+					// increment position counter
+					.then(function () {
 						return q(nextPos + node.messages.length);
 					});
 				} else {
@@ -131,6 +123,17 @@ function updateMessages (connection, messages) {
 		}, q(1));
 	});
 	
+}
+
+function killClassificationsUnderNode(connection, node) {			
+	/* jshint multistr:true */
+
+	var query = 'DELETE Classification FROM Classification \
+			     INNER JOIN Category c ON c.id = Classification.category_id \
+			     WHERE c.lft BETWEEN ? AND ? \
+			    ';
+
+	return mysqhelp.query(connection, query, [node.lft, node.rgt]);
 }
 
 function insertMessages(connection, data) {

@@ -25,12 +25,13 @@ function findMessages (connection, query) {
 	.then(function (rootCategory) {
 		/* jshint multistr:true */
 		var sql = '\
-			SELECT * \
+			SELECT cm.id \
 			FROM ContextualizedMessage cm \
 			INNER JOIN Message m ON m.id = cm.message_id \
 			INNER JOIN Classification c ON c.contextualized_message_id = cm.id \
 			INNER JOIN Category cat ON cat.id = c.category_id \
-			WHERE cat.lft BETWEEN ? and ?\
+			WHERE cat.lft BETWEEN ? and ? \
+			GROUP BY cm.id \
 		';
 		return q.ninvoke(connection, 'query', sql, [rootCategory.lft, rootCategory.rgt]);
 	})

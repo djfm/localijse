@@ -7,8 +7,8 @@ exports.up = function(db, callback) {
 		vendor_id INT UNSIGNED NOT NULL, \
 		message_id INT UNSIGNED NOT NULL, \
 		context VARCHAR (255) NOT NULL, \
-		plurality TINYINT UNSIGNED NULL DEFAULT NULL, \
-		CONSTRAINT UNIQUE KEY (vendor_id, message_id, context, plurality), \
+		plurality TINYINT UNSIGNED NOT NULL DEFAULT 0, \
+		CONSTRAINT UNIQUE KEY ContextualizedMessage_Unicity (vendor_id, message_id, context, plurality), \
 		CONSTRAINT FOREIGN KEY (message_id) REFERENCES Message (id), \
 		CONSTRAINT FOREIGN KEY (vendor_id) REFERENCES Vendor (id) \
 	) ENGINE INNODB, CHARACTER SET utf8, COLLATE utf8_bin";
