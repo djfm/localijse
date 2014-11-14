@@ -4,7 +4,30 @@ var _ 			= require('underscore');
 var categories  = require('../db/categories');
 var treeHelper 	= require('../lib/tree-helper');
 
+/**
+ * find Messages, with or without translations.
+ * `query` is an object with the following keys:
+ * 	- path: string, "/" separated list of path components, or array of strings
+ * 			this determines where the function will search
+ * 	- message: textCondition (see below)
+ * 	- context: textCondition (see below)
+ * 	- hasTranslation: true or false - anything else is error
+ * 	- translation: textCondition (see below)
+ * 	- locale: string, a language locale
+ * 	- status: a valid MappingStatus string
+ *
+ *  In this context, a `textCondition` is either a string,
+ *  which will be interpreted as an "=" condition,
+ *  an object with a 'like' key, the value of which is used in a "LIKE" clause,
+ *  or any falsey value, which means to disable the condition.
+ */
+
 function findMessages (connection, query) {
+	
+	/**
+	 * Normalize query.path
+	 */
+
 	if (!query.path) {
 		return q.reject(new Error('No path specified.'));
 	}
@@ -14,18 +37,21 @@ function findMessages (connection, query) {
 	}
 
 	if (query.path.length < 1) {
-		return q.reject(new Error('Need to specifcy at least the vendor in the path.'));
+		return q.reject(new Error('Need to specify at least the vendor part of the path.'));
 	}
+
+
 
 	return categories.getCategoryTree(connection)
 	.then(function (tree) {
-		return q(treeHelper.getNodeAtPath(tree, query.path));
+		return q(
+			treeHelper.getNodeAtPath(tree, query.path));
 	})
 	// get the messages
 	.then(function (rootCategory) {
 		/* jshint multistr:true */
 		var sql = '\
-			SELECT cm.id \
+			SELECT cm.id, m.message \
 			FROM ContextualizedMessage cm \
 			INNER JOIN Message m ON m.id = cm.message_id \
 			INNER JOIN Classification c ON c.contextualized_message_id = cm.id \
@@ -33,6 +59,7 @@ function findMessages (connection, query) {
 			WHERE cat.lft BETWEEN ? and ? \
 			GROUP BY cm.id \
 		';
+
 		return q.ninvoke(connection, 'query', sql, [rootCategory.lft, rootCategory.rgt]);
 	})
 	// wrap the results
