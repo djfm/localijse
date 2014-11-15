@@ -19,18 +19,18 @@ describe("Messages", function () {
 				message: 'Save',
 				plurality: 0
 			};
-			messages.standardizeMessage(message).should.deep.equal(message);
+			messages.normalizeMessage(message).should.deep.equal(message);
 		});
 		it("Should reject a message with a too short path (< 3)", function () {
 			/* jshint expr:true */
-			expect(messages.standardizeMessage({
+			expect(messages.normalizeMessage({
 				path: ['vendor'],
 				context: 'button',
 				message: 'Save',
 				plurality: null
 			})).to.be.null;
 
-			expect(messages.standardizeMessage({
+			expect(messages.normalizeMessage({
 				path: 'vendor/project',
 				context: 'button',
 				message: 'Save',
@@ -39,19 +39,19 @@ describe("Messages", function () {
 		});
 		it("Should reject a message missing a valid path", function () {
 			/* jshint expr:true */
-			expect(messages.standardizeMessage({context: "button", message: "Save"})).to.be.null;
-			expect(messages.standardizeMessage({context: "button", message: "Save", path: "a"})).to.be.null;
-			expect(messages.standardizeMessage({context: "button", message: "Save", path: ["a"]})).to.be.null;
-			expect(messages.standardizeMessage({context: "button", message: "Save", path: true})).to.be.null;
-			expect(messages.standardizeMessage({context: "button", message: "Save", path: {}})).to.be.null;
+			expect(messages.normalizeMessage({context: "button", message: "Save"})).to.be.null;
+			expect(messages.normalizeMessage({context: "button", message: "Save", path: "a"})).to.be.null;
+			expect(messages.normalizeMessage({context: "button", message: "Save", path: ["a"]})).to.be.null;
+			expect(messages.normalizeMessage({context: "button", message: "Save", path: true})).to.be.null;
+			expect(messages.normalizeMessage({context: "button", message: "Save", path: {}})).to.be.null;
 		});
 		it("Should reject a message missing a valid message", function () {
 			/* jshint expr:true */
-			expect(messages.standardizeMessage({context: "button", path: ['vendor', 'project']})).to.be.null;
-			expect(messages.standardizeMessage({context: "button", path: ['vendor', 'project'], message: true})).to.be.null;
+			expect(messages.normalizeMessage({context: "button", path: ['vendor', 'project']})).to.be.null;
+			expect(messages.normalizeMessage({context: "button", path: ['vendor', 'project'], message: true})).to.be.null;
 		});
 		it("Should transform a path expressed as a string", function () {
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save'
@@ -62,7 +62,7 @@ describe("Messages", function () {
 				plurality: 0
 			});
 
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save'
@@ -75,7 +75,7 @@ describe("Messages", function () {
 		});
 
 		it("Should normalize plurality", function () {
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save'
@@ -86,7 +86,7 @@ describe("Messages", function () {
 				plurality: 0
 			});
 
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
@@ -98,7 +98,7 @@ describe("Messages", function () {
 				plurality: 1
 			});
 
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
@@ -110,7 +110,7 @@ describe("Messages", function () {
 				plurality: 0
 			});
 
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
@@ -122,7 +122,7 @@ describe("Messages", function () {
 				plurality: 2
 			});
 
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
@@ -134,7 +134,7 @@ describe("Messages", function () {
 				plurality: 0
 			});
 
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
@@ -146,7 +146,7 @@ describe("Messages", function () {
 				plurality: 1
 			});
 
-			messages.standardizeMessage({
+			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',

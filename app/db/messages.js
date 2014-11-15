@@ -5,7 +5,7 @@ var categories  = require('../db/categories');
 var treeHelper 	= require('../lib/tree-helper');
 var mysqhelp 	= require('../lib/mysqhelp');
 
-function standardizePlurality (plurality, forTranslation) {
+function normalizePlurality (plurality, forTranslation) {
 	if (!plurality) {
 		return 0;
 	} else if (+plurality > 1) {
@@ -15,7 +15,7 @@ function standardizePlurality (plurality, forTranslation) {
 	}
 }
 
-function standardizeMessage (obj) {
+function normalizeMessage (obj) {
 
 	obj = _.clone(obj);
 
@@ -37,7 +37,7 @@ function standardizeMessage (obj) {
 		return null;
 	}
 
-	obj.plurality = standardizePlurality(obj.plurality);
+	obj.plurality = normalizePlurality(obj.plurality);
 
 	return obj;
 }
@@ -57,7 +57,7 @@ function standardizeMessage (obj) {
  * 					- 0 if plurality is not to be taken into account
  * 					- 1 for singular case
  * 					- 2 for plural case
- * 					defaults to 0, falsey values are standardized to null, numbers > 1 are standardized to 2, anything else treated as 1
+ * 					defaults to 0, falsey values are normalized to null, numbers > 1 are normalized to 2, anything else treated as 1
  * 					
  * }
  * 
@@ -68,7 +68,7 @@ function updateMessages (connection, messages) {
 
 	// turn the messages into a tree, appending them all to cats
 	_.each(messages, function (message) {
-		message = standardizeMessage(message);
+		message = normalizeMessage(message);
 		if (message) {
 			var tree   = treeHelper.makeTreeFromPath(message.path, function (endNode) {
 				endNode.messages = [_.omit(message, 'path')];
@@ -171,5 +171,5 @@ function insertMessages(connection, data) {
 }
 
 exports.updateMessages = updateMessages;
-exports.standardizeMessage = standardizeMessage;
-exports.standardizePlurality = standardizePlurality;
+exports.normalizeMessage = normalizeMessage;
+exports.normalizePlurality = normalizePlurality;

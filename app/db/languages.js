@@ -4,7 +4,7 @@ var q 		= require('q');
 var mysqhelp = require('../lib/mysqhelp');
 
 
-function standardizeLocale (locale) {
+function normalizeLocale (locale) {
 	if (!locale) {
 		return null;
 	}
@@ -18,11 +18,11 @@ function standardizeLocale (locale) {
 	}
 }
 
-function standardizeLanguage (language) {
+function normalizeLanguage (language) {
 
 	language = _.clone(language);
 
-	language.locale = standardizeLocale(language.locale);
+	language.locale = normalizeLocale(language.locale);
 
 	if (!language.locale) {
 		return null;
@@ -38,7 +38,7 @@ function standardizeLanguage (language) {
 }
 
 function addLanguage (connection, language) {
-	language = standardizeLanguage(language);
+	language = normalizeLanguage(language);
 
 	if (!language) {
 		return q.reject('Invalid language.');
@@ -48,14 +48,14 @@ function addLanguage (connection, language) {
 }
 
 function findLanguage (connection, locale) {
-	locale = standardizeLocale(locale);
+	locale = normalizeLocale(locale);
 	if (!locale) {
 		return q.reject('Invalid locale format!');
 	}
 	return mysqhelp.query(connection, 'SELECT * FROM Language WHERE ?', [{locale: locale}]).get(0);
 }
 
-exports.standardizeLanguage = standardizeLanguage;
-exports.standardizeLocale = standardizeLocale;
+exports.normalizeLanguage = normalizeLanguage;
+exports.normalizeLocale = normalizeLocale;
 exports.addLanguage = addLanguage;
 exports.findLanguage = findLanguage;

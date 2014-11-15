@@ -7,7 +7,7 @@ var mysqhelp 	= require('../lib/mysqhelp');
 
 function addTranslation (connection, user, contextualizedMessageId, data) {
 
-	var locale = languages.standardizeLocale(data.locale);
+	var locale = languages.normalizeLocale(data.locale);
 
 	if (!locale) {
 		return q.reject('Invalid locale.');
@@ -23,7 +23,7 @@ function addTranslation (connection, user, contextualizedMessageId, data) {
 
 	var contextualized_message_id = contextualizedMessageId.contextualized_message_id || contextualizedMessageId;
 	var language_id;
-	var plurality = messages.standardizePlurality(data.plurality, true);
+	var plurality = messages.normalizePlurality(data.plurality, true);
 
 	return user.checkAllowedToTranslate(locale)
 	.then(function () {

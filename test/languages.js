@@ -11,19 +11,19 @@ var localijse = require('../app/localijse').init('test');
 describe("Languages", function () {
 	before(localijse.resetDatabase);
 
-	it("should standardize locale", function () {
-		languages.standardizeLocale('fr-fr').should.equal('fr_FR');
-		languages.standardizeLocale('fr_fr').should.equal('fr_FR');
-		languages.standardizeLocale('FR_fr').should.equal('fr_FR');
-		languages.standardizeLocale('FR+fr').should.equal('fr_FR');
-		languages.standardizeLocale('FR:fr').should.equal('fr_FR');
-		languages.standardizeLocale(' FR:fr ').should.equal('fr_FR');
+	it("should normalize locale", function () {
+		languages.normalizeLocale('fr-fr').should.equal('fr_FR');
+		languages.normalizeLocale('fr_fr').should.equal('fr_FR');
+		languages.normalizeLocale('FR_fr').should.equal('fr_FR');
+		languages.normalizeLocale('FR+fr').should.equal('fr_FR');
+		languages.normalizeLocale('FR:fr').should.equal('fr_FR');
+		languages.normalizeLocale(' FR:fr ').should.equal('fr_FR');
 
-		expect(languages.standardizeLocale('FR')).to.equal(null);
+		expect(languages.normalizeLocale('FR')).to.equal(null);
 	});
 
-	it("should standardize language", function () {
-		languages.standardizeLanguage({
+	it("should normalize language", function () {
+		languages.normalizeLanguage({
 			locale: 'fr-fr',
 			name: ' Français (French) '
 		}).should.deep.equal({
@@ -31,15 +31,15 @@ describe("Languages", function () {
 			name: 'Français (French)'
 		});
 
-		expect(languages.standardizeLanguage({
+		expect(languages.normalizeLanguage({
 			name: ' Français (French) '
 		})).to.equal(null);
 
-		expect(languages.standardizeLanguage({
+		expect(languages.normalizeLanguage({
 			locale: 'Fr-fr'
 		})).to.equal(null);
 
-		expect(languages.standardizeLanguage({
+		expect(languages.normalizeLanguage({
 			locale: 'fr',
 			name: 'Français'
 		})).to.equal(null);
