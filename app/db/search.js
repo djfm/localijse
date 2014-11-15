@@ -2,6 +2,7 @@ var q 			= require('q');
 var _ 			= require('underscore');
 
 var categories  = require('../db/categories');
+var mysqhelp  	= require('../lib/mysqhelp');
 var qb  		= require('../lib/qb');
 var treeHelper 	= require('../lib/tree-helper');
 
@@ -50,9 +51,9 @@ function findMessages (connection, query) {
 	})
 	// get the messages
 	.then(function (rootCategory) {
-		
+
 		var sql = qb()
-		.select('cm.id', 'm.message')
+		.select('cm.id as contextualized_message_id', 'm.message')
 		.from('ContextualizedMessage', 'cm')
 		.join('Message m', 'cm')
 		.join('Classification c', 'cm.id', 'c.contextualized_message_id')
@@ -60,11 +61,10 @@ function findMessages (connection, query) {
 		.where('BETWEEN', 'cat.lft', '?', '?')
 		.groupBy('cm.id');
 
-		return q.ninvoke(connection, 'query', sql.getQuery(), [rootCategory.lft, rootCategory.rgt]);
+		return mysqhelp.query(connection, sql, [rootCategory.lft, rootCategory.rgt]);
 	})
 	// wrap the results
-	.then(function (data) {
-		var rows = data[0];
+	.then(function (rows) {
 		var paginator = {
 			totalCount: rows.length,
 			retrievedCount: rows.length,

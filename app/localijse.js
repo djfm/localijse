@@ -1,13 +1,15 @@
-var fs 			= require('fs');
-var mysql 		= require('mysql');
-var q 			= require('q');
-var spawn 		= require('child_process').spawn;
-var _ 			= require('underscore');
+var fs 				= require('fs');
+var mysql 			= require('mysql');
+var q 				= require('q');
+var spawn 			= require('child_process').spawn;
+var _ 				= require('underscore');
 
-var categories 	= require('./db/categories');
-var messages 	= require('./db/messages');
-var mysqhelp   = require('./lib/mysqhelp');
-var search	 	= require('./db/search');
+var categories 		= require('./db/categories');
+var languages 		= require('./db/languages');
+var messages 		= require('./db/messages');
+var mysqhelp   		= require('./lib/mysqhelp');
+var search	 		= require('./db/search');
+var translations	= require('./db/translations');
 
 function Localijse(config) {
 
@@ -43,14 +45,17 @@ function Localijse(config) {
 
 	// Proxy'ed functions:
 
-	this.addCategoryPath = categories.addCategoryPath.bind(this, connection);
-	this.addCategoryTree = categories.addCategoryTree.bind(this, connection);
-	this.getCategoryTree = categories.getCategoryTree.bind(this, connection);
+	this.addCategoryPath 	= categories.addCategoryPath.bind(this, connection);
+	this.addCategoryTree 	= categories.addCategoryTree.bind(this, connection);
+	this.getCategoryTree 	= categories.getCategoryTree.bind(this, connection);
 
-	this.findMessages	 = search.findMessages.bind(this, connection);
-	this.updateMessages  = messages.updateMessages.bind(this, connection);
+	this.findMessages	 	= search.findMessages.bind(this, connection);
+	this.updateMessages  	= messages.updateMessages.bind(this, connection);
 	
-	this.addTranslation = null;
+	this.addLanguage 		= languages.addLanguage.bind(this, connection);
+	this.findLanguage 		= languages.findLanguage.bind(this, connection);
+
+	this.addTranslation 	= translations.addTranslation.bind(this, connection);
 }
 
 exports.init = function (environment) {

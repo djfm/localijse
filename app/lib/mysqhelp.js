@@ -7,6 +7,10 @@ var q = require('q');
 function query (connection, sql, params) {
 	var d = q.defer();
 
+	if (typeof sql !== 'string') {
+		sql = sql.toString();
+	}
+
 	connection.query(sql, params, function (err, res) {
 		if (err) {
 			d.reject(err);
@@ -72,6 +76,26 @@ function insertIgnore(connection, tableName, object) {
 	});
 }
 
+function upsert (connection, tableName, keyFields, valueFields) {
+	var keyColumns = _.keys(keyFields);
+	var valueColumns = _.keys(valueFields);
+	var allColumns = keyColumns.concat(valueColumns);
+	var allValues = _.values(keyFields).concat(_.values(valueFields));
+
+	var sql = "INSERT INTO ?? " + toColumnPlaceHolders(allColumns) + " VALUES " + toValuePlaceHolders(allValues);
+	sql = sql + " ON DUPLICATE KEY UPDATE " + toEqPlaceHolders(valueColumns);
+
+	var params = [tableName].concat(allColumns).concat(allValues).concat(toColumnsAndValues(valueColumns, valueFields));
+
+	return query(connection, sql, params).then(function (res) {
+		if (res.insertId > 0) {
+			return q(res.insertId);
+		} else {
+			return query(connection, 'SELECT id FROM ?? WHERE ?', [tableName, keyFields]).get(0).get('id');
+		}
+	});
+}
+
 function toValues(columns, object) {
 	return _.map(columns, function (name) { return object[name]; });
 }
@@ -108,3 +132,4 @@ function toEqPlaceHolders(columns) {
 exports.save = save;
 exports.query = query;
 exports.insertIgnore = insertIgnore;
+exports.upsert = upsert;
