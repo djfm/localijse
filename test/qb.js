@@ -3,19 +3,8 @@ require('chai').should();
 var qb = require('../app/lib/qb');
 
 /* global describe, it */
-/*
-var sql = '\
-	SELECT cm.id, m.message \
-	FROM ContextualizedMessage cm \
-	INNER JOIN Message m ON m.id = cm.message_id \
-	INNER JOIN Classification c ON c.contextualized_message_id = cm.id \
-	INNER JOIN Category cat ON cat.id = c.category_id \
-	WHERE cat.lft BETWEEN ? and ? \
-	GROUP BY cm.id \
-';*/
 
-
-describe.only('Query builder', function () {
+describe('Query builder', function () {
 
 	describe('makeIdForTable', function () {
 		it ('should convert CamelCase', function () {
@@ -59,20 +48,54 @@ describe.only('Query builder', function () {
 			'INNER JOIN Message m ON m.id = cm.message_id',
 			'INNER JOIN Classification c ON c.contextualized_message_id = cm.id',
 			'INNER JOIN Category cat ON cat.id = c.category_id',
+			'WHERE (cat.lft BETWEEN ? AND ?)',
+			'GROUP BY cm.id'
 		];
 
-		var query = qb()
+		qb()
 		.select('cm.id', 'm.message')
 		.from('ContextualizedMessage', 'cm')
 		.join('Message m', 'cm')
 		.join('Classification c', 'cm.id', 'c.contextualized_message_id')
 		.join('Category cat', 'c')
+		.where('BETWEEN', 'cat.lft', '?', '?')
+		.groupBy('cm.id')
 		.getQuery()
 		.should.equal(parts.join(' '));
+	});
 
-		parts = parts.concat([
-			'WHERE cat.lft BETWEEN ? and ? ',
-			'GROUP BY cm.id'
-		]);
+	it("Should build conditions", function () {
+		
+		qb.condition('=', 'a', 'b').toString().should.equal('(a = b)');
+		qb.condition('BETWEEN', 'a', '1', '2').toString().should.equal('(a BETWEEN 1 AND 2)');
+		qb.condition('true').toString().should.equal('true');
+		
+		qb.condition('and', function (and) {
+			and('<', 'x', '1');
+			and('>', 'y', '2');
+		}).toString().should.equal('((x < 1) AND (y > 2))');
+
+		qb.condition('and', function (and) {
+			and('<', 'x', '1');
+			and('or', function (or) {
+				or('>', 'y', '2');
+				or('<', 'z', '3');
+
+			});
+		}).toString().should.equal('((x < 1) AND ((y > 2) OR (z < 3)))');
+	});
+
+	it ("Should generate where clauses", function () {
+		qb().select('a').from('A').where('=', 'b', '?')
+		.getQuery().should.equal("SELECT a FROM A WHERE (b = ?)");
+
+		qb().select('a').from('A').where('or', function(or) {
+			or('BETWEEN', 'a', 'b', 'c');
+			or('and', function (and) {
+				and('<', 'x', 4);
+				and('>', 'z', 2);
+			});
+		})
+		.getQuery().should.equal("SELECT a FROM A WHERE ((a BETWEEN b AND c) OR ((x < 4) AND (z > 2)))");
 	});
 });

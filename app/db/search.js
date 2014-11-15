@@ -2,6 +2,7 @@ var q 			= require('q');
 var _ 			= require('underscore');
 
 var categories  = require('../db/categories');
+var qb  		= require('../lib/qb');
 var treeHelper 	= require('../lib/tree-helper');
 
 /**
@@ -49,16 +50,15 @@ function findMessages (connection, query) {
 	})
 	// get the messages
 	.then(function (rootCategory) {
-		/* jshint multistr:true */
-		var sql = '\
-			SELECT cm.id, m.message \
-			FROM ContextualizedMessage cm \
-			INNER JOIN Message m ON m.id = cm.message_id \
-			INNER JOIN Classification c ON c.contextualized_message_id = cm.id \
-			INNER JOIN Category cat ON cat.id = c.category_id \
-			WHERE cat.lft BETWEEN ? and ? \
-			GROUP BY cm.id \
-		';
+		var sql = qb()
+		.select('cm.id', 'm.message')
+		.from('ContextualizedMessage', 'cm')
+		.join('Message m', 'cm')
+		.join('Classification c', 'cm.id', 'c.contextualized_message_id')
+		.join('Category cat', 'c')
+		.where('BETWEEN', 'cat.lft', '?', '?')
+		.groupBy('cm.id')
+		.toString();
 
 		return q.ninvoke(connection, 'query', sql, [rootCategory.lft, rootCategory.rgt]);
 	})
