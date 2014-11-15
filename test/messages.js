@@ -12,7 +12,7 @@ var localijse = require('../app/localijse').init('test');
 describe("Messages", function () {
 
 	describe("Message standardization", function () {
-		it ("Should accept a correctly formed message", function () {
+		it("Should accept a correctly formed message", function () {
 			var message = {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
@@ -21,7 +21,7 @@ describe("Messages", function () {
 			};
 			messages.standardizeMessage(message).should.deep.equal(message);
 		});
-		it ("Should reject a message with a too short path (< 3)", function () {
+		it("Should reject a message with a too short path (< 3)", function () {
 			/* jshint expr:true */
 			expect(messages.standardizeMessage({
 				path: ['vendor'],
@@ -37,7 +37,7 @@ describe("Messages", function () {
 				plurality: null
 			})).to.be.null;
 		});
-		it ("Should reject a message missing a valid path", function () {
+		it("Should reject a message missing a valid path", function () {
 			/* jshint expr:true */
 			expect(messages.standardizeMessage({context: "button", message: "Save"})).to.be.null;
 			expect(messages.standardizeMessage({context: "button", message: "Save", path: "a"})).to.be.null;
@@ -45,12 +45,12 @@ describe("Messages", function () {
 			expect(messages.standardizeMessage({context: "button", message: "Save", path: true})).to.be.null;
 			expect(messages.standardizeMessage({context: "button", message: "Save", path: {}})).to.be.null;
 		});
-		it ("Should reject a message missing a valid message", function () {
+		it("Should reject a message missing a valid message", function () {
 			/* jshint expr:true */
 			expect(messages.standardizeMessage({context: "button", path: ['vendor', 'project']})).to.be.null;
 			expect(messages.standardizeMessage({context: "button", path: ['vendor', 'project'], message: true})).to.be.null;
 		});
-		it ("Should transform a path expressed as a string", function () {
+		it("Should transform a path expressed as a string", function () {
 			messages.standardizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
@@ -74,7 +74,7 @@ describe("Messages", function () {
 			});
 		});
 
-		it ("Should normalize plurality", function () {
+		it("Should normalize plurality", function () {
 			messages.standardizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
@@ -163,7 +163,7 @@ describe("Messages", function () {
 	describe("Messages update", function () {
 		before(localijse.resetDatabase);
 
-		it ("should add just one message", function (done) {
+		it("should add just one message", function (done) {
 			localijse.updateMessages([{
 				path: 'PrestaShop/PrestaShop/1.6.0.9/Back Office',
 				context: 'button',
@@ -180,7 +180,7 @@ describe("Messages", function () {
 			});
 		});
 
-		it ("should replace the messages", function (done) {
+		it("should replace the messages", function (done) {
 			localijse.updateMessages([{
 				path: 'PrestaShop/PrestaShop/1.6.0.9/Back Office',
 				context: 'title',
@@ -197,7 +197,7 @@ describe("Messages", function () {
 			});
 		});
 
-		it ("should be able to re-add the first message", function (done) {
+		it("should be able to re-add the first message", function (done) {
 			localijse.updateMessages([{
 				path: 'PrestaShop/PrestaShop/1.6.0.9/Back Office',
 				context: 'button',
@@ -214,7 +214,7 @@ describe("Messages", function () {
 			});
 		});
 
-		it ("should add 2 messages", function (done) {
+		it("should add 2 messages", function (done) {
 			localijse.updateMessages([{
 				path: 'PrestaShop/PrestaShop/1.6.0.9/Back Office',
 				context: 'button',
@@ -235,7 +235,7 @@ describe("Messages", function () {
 			});
 		});
 
-		it ("should add 1 message to another project without touching the classifications from the existing one", function (done) {
+		it("should add 1 message to another project without touching the classifications from the existing one", function (done) {
 			localijse.updateMessages([{
 				path: 'PrestaShop/PrestaShop/1.6.0.11/Back Office',
 				context: 'label',
@@ -252,7 +252,7 @@ describe("Messages", function () {
 			});
 		});
 
-		it ("should add a duplicated message under another project", function (done) {
+		it("should add a duplicated message under another project", function (done) {
 			localijse.updateMessages([{
 				path: 'PrestaShop/PrestaShop/1.6.0.7/Back Office',
 				context: 'label',

@@ -50,6 +50,7 @@ function findMessages (connection, query) {
 	})
 	// get the messages
 	.then(function (rootCategory) {
+		
 		var sql = qb()
 		.select('cm.id', 'm.message')
 		.from('ContextualizedMessage', 'cm')
@@ -57,10 +58,9 @@ function findMessages (connection, query) {
 		.join('Classification c', 'cm.id', 'c.contextualized_message_id')
 		.join('Category cat', 'c')
 		.where('BETWEEN', 'cat.lft', '?', '?')
-		.groupBy('cm.id')
-		.toString();
+		.groupBy('cm.id');
 
-		return q.ninvoke(connection, 'query', sql, [rootCategory.lft, rootCategory.rgt]);
+		return q.ninvoke(connection, 'query', sql.getQuery(), [rootCategory.lft, rootCategory.rgt]);
 	})
 	// wrap the results
 	.then(function (data) {

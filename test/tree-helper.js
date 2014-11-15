@@ -9,29 +9,29 @@ var treeHelper = require("../app/lib/tree-helper");
 describe("treeHelper", function () {
 
 	describe("makeNode", function () {
-		it ("should make a node from a string", function () {
+		it("should make a node from a string", function () {
 			treeHelper.makeNode("hello").should.deep.equal({name: "hello"});
 		});
-		it ("should not change a node ", function () {
+		it("should not change a node ", function () {
 			treeHelper.makeNode({name: "hello"}).should.deep.equal({name: "hello"});
 		});
 	});
 
 	describe("makeTreeFromPath", function () {
-		it ("sould bail on an empty path", function() {
+		it("sould bail on an empty path", function() {
 			/* jshint expr:true */
 			expect(treeHelper.makeTreeFromPath([])).to.not.be.ok;
 		});
-		it ("sould convert a string path of length one", function () {
+		it("sould convert a string path of length one", function () {
 			treeHelper.makeTreeFromPath(["hello"]).should.deep.equal({name: "hello"});
 		});
-		it ("sould convert an object path of length one", function () {
+		it("sould convert an object path of length one", function () {
 			treeHelper.makeTreeFromPath([{name: 'hello'}]).should.deep.equal({name: "hello"});
 		});
-		it ("sould convert a string path of length 2", function () {
+		it("sould convert a string path of length 2", function () {
 			treeHelper.makeTreeFromPath(["hello", "world"]).should.deep.equal({name: "hello", children: [{name: 'world'}]});
 		});
-		it ("sould convert a mixed path of length 3", function () {
+		it("sould convert a mixed path of length 3", function () {
 			treeHelper.makeTreeFromPath(["hello", "world", {name: "and kittens"}]).should.deep.equal({
 				name: "hello",
 				children: [
@@ -41,7 +41,7 @@ describe("treeHelper", function () {
 				]
 			});
 		});
-		it ("should attach my data to the end of the tree", function () {
+		it("should attach my data to the end of the tree", function () {
 			treeHelper.makeTreeFromPath(["a", "b", "c"], function (endNode) {
 				endNode.messages = [1, 2];
 			}).should.deep.equal({
@@ -58,16 +58,16 @@ describe("treeHelper", function () {
 	});
 
 	describe("mergeTrees", function () {
-		it ("should leave tree alone if mergee is falsey", function () {
+		it("should leave tree alone if mergee is falsey", function () {
 			treeHelper.mergeTrees({name: 'a'}, null).should.deep.equal({name: 'a'});
 		});
-		it ("should return mergee if target is falsey", function () {
+		it("should return mergee if target is falsey", function () {
 			treeHelper.mergeTrees(null, {name: 'a'}).should.deep.equal({name: 'a'});
 		});
-		it ("should update target if nodes have the same name", function () {
+		it("should update target if nodes have the same name", function () {
 			treeHelper.mergeTrees({name: 'a'}, {name: 'a', prop: 42}).should.deep.equal({name: 'a', prop: 42});
 		});
-		it ("should create a new root node if the merged trees don't have the same root", function () {
+		it("should create a new root node if the merged trees don't have the same root", function () {
 			treeHelper.mergeTrees({name: 'a'}, {name: 'b'}).should.deep.equal(
 				{
 					name: 'a, b',
@@ -117,7 +117,7 @@ describe("treeHelper", function () {
 				}
 			);
 		});
-		it ("should use a custom merge function when properties collide", function () {
+		it("should use a custom merge function when properties collide", function () {
 			treeHelper.mergeTrees({
 				name: 'a',
 				children: [{
@@ -253,10 +253,10 @@ describe("treeHelper", function () {
 	});
 
 	describe("flatten trees", function () {
-		it ('should flatten a tree without children', function () {
+		it('should flatten a tree without children', function () {
 			treeHelper.flatten({name: 'a'}).should.deep.equal([{name: 'a'}]);
 		});
-		it ('should flatten a tree with children', function () {
+		it('should flatten a tree with children', function () {
 			treeHelper.flatten({name: 'a', children:[{name: 'b', children: [{name: 'c'}]}]}).should.deep.equal([
 				{name: 'a'},
 				{name: 'b'},
@@ -266,10 +266,10 @@ describe("treeHelper", function () {
 	});
 
 	describe("number trees", function () {
-		it ('should number a leaf', function () {
+		it('should number a leaf', function () {
 			treeHelper.number({name: 'a'}).should.deep.equal({name: 'a', lft: 1, rgt: 2});
 		});
-		it ('should number a tree with children', function () {
+		it('should number a tree with children', function () {
 			treeHelper.number({name: 'a', children:[{name: 'b'}, {name: 'c'}]}).should.deep.equal(
 				{name: 'a', lft: 1, rgt: 6, children:[{name: 'b', lft: 2, rgt: 3}, {name: 'c', lft: 4, rgt: 5}]}
 			);
@@ -277,10 +277,10 @@ describe("treeHelper", function () {
 	});
 
 	describe("unFlattenNumberedTree", function () {
-		it ("should unflatten a single node", function () {
+		it("should unflatten a single node", function () {
 			treeHelper.unFlattenNumberedTree([{name: 'a', lft: 1, rgt: 2}]).should.deep.equal({name: 'a', lft: 1, rgt: 2});
 		});
-		it ("should unflatten a 3 nodes tree", function () {
+		it("should unflatten a 3 nodes tree", function () {
 			treeHelper.unFlattenNumberedTree([
 				{name: 'b', lft: 2, rgt: 3},
 				{name: 'a', lft: 1, rgt: 6},
@@ -297,7 +297,7 @@ describe("treeHelper", function () {
 	});
 
 	describe("getNodesAtDepth", function () {
-		it ("Should find nodes at depth 1", function () {
+		it("Should find nodes at depth 1", function () {
 			treeHelper.getNodesAtDepth({
 				name: 'a',
 				children: [{name: 'b'}]
@@ -307,7 +307,7 @@ describe("treeHelper", function () {
 				children: [{name: 'b'}]
 			}]);
 		});
-		it ("Should find nodes at depth 2", function () {
+		it("Should find nodes at depth 2", function () {
 			treeHelper.getNodesAtDepth({
 				name: 'a',
 				children: [{name: 'b'}]
@@ -316,7 +316,7 @@ describe("treeHelper", function () {
 				name: 'b'
 			}]);
 		});
-		it ("Should find nodes at depth 3", function () {
+		it("Should find nodes at depth 3", function () {
 			treeHelper.getNodesAtDepth({
 				name: 'a',
 				children: [{name: 'b', children: [{name: 'c'}]}, {name: 'd', children: [{name: 'e'}]}]
