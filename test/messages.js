@@ -17,7 +17,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: null
+				plurality: 0
 			};
 			messages.standardizeMessage(message).should.deep.equal(message);
 		});

@@ -5,7 +5,19 @@ var categories  = require('../db/categories');
 var treeHelper 	= require('../lib/tree-helper');
 var mysqhelp 	= require('../lib/mysqhelp');
 
+function standardizePlurality (plurality, forTranslation) {
+	if (!plurality) {
+		return 0;
+	} else if (+plurality > 1) {
+		return forTranslation ? +plurality : 2;
+	} else {
+		return 1;
+	}
+}
+
 function standardizeMessage (obj) {
+
+	obj = _.clone(obj);
 
 	if (!obj.path) {
 		return null;
@@ -25,13 +37,7 @@ function standardizeMessage (obj) {
 		return null;
 	}
 
-	if (!obj.plurality) {
-		obj.plurality = 0;
-	} else if (+obj.plurality > 1) {
-		obj.plurality = 2;
-	} else {
-		obj.plurality = 1;
-	}
+	obj.plurality = standardizePlurality(obj.plurality);
 
 	return obj;
 }
@@ -166,3 +172,4 @@ function insertMessages(connection, data) {
 
 exports.updateMessages = updateMessages;
 exports.standardizeMessage = standardizeMessage;
+exports.standardizePlurality = standardizePlurality;

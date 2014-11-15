@@ -11,7 +11,7 @@ var users 			= require('../app/auth/users');
 
 var localijse = require('../app/localijse').init('test');
 
-describe("Translations", function () {
+describe.only("Translations", function () {
 	before(localijse.resetDatabase);
 	before(function () {
 		return localijse.addLanguage({
@@ -45,8 +45,9 @@ describe("Translations", function () {
 			locale: 'fr_FR',
 			translation: 'Bienvenue !'
 		})
-		.get('success')
-		.should.become(true)
-		.notify(done);
+		.then(done.bind(undefined, null))
+		.fail(function (err) {
+			done(err);
+		});
 	});
 });
