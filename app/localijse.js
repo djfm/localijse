@@ -10,6 +10,7 @@ var messages 		= require('./db/messages');
 var mysqhelp   		= require('./lib/mysqhelp');
 var search	 		= require('./db/search');
 var translations	= require('./db/translations');
+var users			= require('./auth/users');
 
 function Localijse(config) {
 
@@ -45,17 +46,19 @@ function Localijse(config) {
 
 	// Proxy'ed functions:
 
-	this.addCategoryPath 	= categories.addCategoryPath.bind(this, connection);
-	this.addCategoryTree 	= categories.addCategoryTree.bind(this, connection);
-	this.getCategoryTree 	= categories.getCategoryTree.bind(this, connection);
+	this.addCategoryPath 	= categories.addCategoryPath.bind(undefined, connection);
+	this.addCategoryTree 	= categories.addCategoryTree.bind(undefined, connection);
+	this.getCategoryTree 	= categories.getCategoryTree.bind(undefined, connection);
 
-	this.findMessages	 	= search.findMessages.bind(this, connection);
-	this.updateMessages  	= messages.updateMessages.bind(this, connection);
+	this.findMessages	 	= search.findMessages.bind(undefined, connection);
+	this.updateMessages  	= messages.updateMessages.bind(undefined, connection);
 	
-	this.addLanguage 		= languages.addLanguage.bind(this, connection);
-	this.findLanguage 		= languages.findLanguage.bind(this, connection);
+	this.addLanguage 		= languages.addLanguage.bind(undefined, connection);
+	this.findLanguage 		= languages.findLanguage.bind(undefined, connection);
 
-	this.addTranslation 	= translations.addTranslation.bind(this, connection);
+	this.addTranslation 	= translations.addTranslation.bind(undefined, connection);
+
+	this.addUser			= users.addUser.bind(undefined, connection);
 }
 
 exports.init = function (environment) {

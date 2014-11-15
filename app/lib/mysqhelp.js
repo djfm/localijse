@@ -77,13 +77,25 @@ function insertIgnore(connection, tableName, object) {
 }
 
 function upsert (connection, tableName, keyFields, valueFields) {
+
+	if (!valueFields) {
+		valueFields = {};
+	}
+
 	var keyColumns = _.keys(keyFields);
 	var valueColumns = _.keys(valueFields);
 	var allColumns = keyColumns.concat(valueColumns);
 	var allValues = _.values(keyFields).concat(_.values(valueFields));
 
-	var sql = "INSERT INTO ?? " + toColumnPlaceHolders(allColumns) + " VALUES " + toValuePlaceHolders(allValues);
-	sql = sql + " ON DUPLICATE KEY UPDATE " + toEqPlaceHolders(valueColumns);
+	var sql;
+
+	if (valueColumns.length > 0) {
+		sql = "INSERT INTO ?? " + toColumnPlaceHolders(allColumns) + " VALUES " + toValuePlaceHolders(allValues);
+		sql = sql + " ON DUPLICATE KEY UPDATE " + toEqPlaceHolders(valueColumns);
+	} else {
+		sql = "INSERT IGNORE INTO ?? " + toColumnPlaceHolders(allColumns) + " VALUES " + toValuePlaceHolders(allValues);
+	}
+	
 
 	var params = [tableName].concat(allColumns).concat(allValues).concat(toColumnsAndValues(valueColumns, valueFields));
 
