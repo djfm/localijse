@@ -13,7 +13,7 @@ exports.up = function(db, callback) {
 		CONSTRAINT FOREIGN KEY (contextualized_message_id) REFERENCES ContextualizedMessage (id), \
 		CONSTRAINT FOREIGN KEY (language_id) REFERENCES Language (id), \
 		CONSTRAINT FOREIGN KEY (mapping_version_id) REFERENCES MappingVersion (id) \
-	) ENGINE INNODB, CHARACTER SET utf8, COLLATE utf8_bin";
+	) ENGINE INNODB, CHARACTER SET utf8, COLLATE utf8_bin;";
 
 	db.runSql(query, callback);
 };

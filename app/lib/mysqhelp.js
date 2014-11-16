@@ -76,6 +76,12 @@ function insertIgnore(connection, tableName, object) {
 	});
 }
 
+function insert(connection, tableName, object) {
+	var columns = _.keys(object);
+	var sql = "INSERT INTO ?? " + toColumnPlaceHolders(columns) + ' VALUES ' + toValuePlaceHolders(columns);
+	return query(connection, sql, [tableName].concat(columns).concat(toValues(columns, object))).get('insertId');
+}
+
 function upsert (connection, tableName, keyFields, valueFields) {
 
 	if (!valueFields) {
@@ -143,5 +149,6 @@ function toEqPlaceHolders(columns) {
 
 exports.save = save;
 exports.query = query;
+exports.insert = insert;
 exports.insertIgnore = insertIgnore;
 exports.upsert = upsert;

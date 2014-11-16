@@ -12,7 +12,9 @@ var allowedStatuses = {
 function getMappingStatusId (connection, name) {
 
 	if (!allowedStatuses[name]) {
-		return q.reject(new Error('Invalid MappingStatus, should be one of: ' + _.keys(allowedStatuses).join(', ')) + '.');
+		return q.reject(
+			new Error('Invalid MappingStatus, should be one of: ' + _.keys(allowedStatuses).join(', ')) + ', got ' + name + '.'
+		);
 	}
 
 	return mysqhelp.insertIgnore(connection, 'MappingStatus', {name: name});

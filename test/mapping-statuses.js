@@ -6,7 +6,7 @@ chai.should();
 
 var localijse = require('../app/localijse').init('test');
 
-describe.only("Mapping Statuses", function () {
+describe("Mapping Statuses", function () {
 	before(localijse.resetDatabase);
 
 	it("Should reject an invalid status", function (done) {
