@@ -4,13 +4,11 @@ exports.up = function(db, callback) {
 	
 	var query = "CREATE TABLE MappingVersion (\
 		id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, \
-		mapping_id INT UNSIGNED, \
 		translation_id INT UNSIGNED NOT NULL, \
 		mapping_status_id INT UNSIGNED NOT NULL, \
 		created_by INT UNSIGNED NOT NULL, \
 		reviewed_by INT UNSIGNED NOT NULL, \
 		created_at DATETIME NOT NULL, \
-		KEY (mapping_id), \
 		KEY (translation_id), \
 		KEY (mapping_status_id), \
 		KEY (created_by), \

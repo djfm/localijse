@@ -27,31 +27,31 @@ describe('Query builder', function () {
 		qb()
 		.select('a.x')
 		.from('A')
-		.join('B b', 'A')
+		.joinReferenced('B b', 'A')
 		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON b.id = A.b_id');
 
 		qb()
 		.select('a.x')
 		.from('A')
-		.joined('B b', 'A')
+		.joinOwning('B b', 'A')
 		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON A.id = b.a_id');
 
 		qb()
 		.select('a.x')
 		.from('A')
-		.joined('B b', 'A.z')
+		.joinOwning('B b', 'A.z')
 		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON A.z = b.a_id');
 
 		qb()
 		.select('a.x')
 		.from('A')
-		.join('B b', 'A.b_id')
+		.joinReferenced('B b', 'A.b_id')
 		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON b.id = A.b_id');
 
 		qb()
 		.select('a.x')
 		.from('A')
-		.join('B b', 'A.b_id', 'x.y')
+		.joinReferenced('B b', 'A.b_id', 'x.y')
 		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON x.y = A.b_id');
 
 		var parts = [
@@ -67,9 +67,9 @@ describe('Query builder', function () {
 		qb()
 		.select('cm.id', 'm.message')
 		.from('ContextualizedMessage', 'cm')
-		.join('Message m', 'cm')
-		.join('Classification c', 'cm.id', 'c.contextualized_message_id')
-		.join('Category cat', 'c')
+		.joinReferenced('Message m', 'cm')
+		.joinReferenced('Classification c', 'cm.id', 'c.contextualized_message_id')
+		.joinReferenced('Category cat', 'c')
 		.where('BETWEEN', 'cat.lft', '?', '?')
 		.groupBy('cm.id')
 		.getQuery()

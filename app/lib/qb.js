@@ -120,10 +120,10 @@ function qb () {
 			return this;
 		},
 		/**
-		 * Joins a table, with aliasOrField being interpreted as the owning side, i.e.:
+		 * Joins a table, with tableIntroduced being interpreted as the referenced side, i.e.:
 		 * join('B b', 'A') => INNER JOIN B b ON b.id = A.b_id
 		 */
-		join: function (tableIntroduced, aliasOrField, maybeField) {
+		joinReferenced: function (tableIntroduced, aliasOrField, maybeField) {
 
 			var referencedAlias = saveAlias(tableIntroduced);
 			var referencedTable = getTable(referencedAlias);
@@ -153,7 +153,7 @@ function qb () {
 		 * Joins a table, with tableIntroduced being interpreted as the owning side, i.e.:
 		 * joined('B b', 'A') => INNER JOIN B b ON a.id = B.a_id
 		 */
-		joined: function (tableIntroduced, aliasOrField, maybeField) {
+		joinOwning: function (tableIntroduced, aliasOrField, maybeField) {
 			var owningAlias = saveAlias(tableIntroduced);
 			var owningTable = getTable(owningAlias);
 

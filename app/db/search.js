@@ -55,9 +55,9 @@ function find (connection, query) {
 		var sql = qb()
 		.select('cm.id as contextualized_message_id', 'm.message')
 		.from('ContextualizedMessage', 'cm')
-		.join('Message m', 'cm')
-		.join('Classification c', 'cm.id', 'c.contextualized_message_id')
-		.join('Category cat', 'c')
+		.joinReferenced('Message m', 'cm')
+		.joinOwning('Classification c', 'cm')
+		.joinReferenced('Category cat', 'c')
 		.where('BETWEEN', 'cat.lft', '?', '?')
 		.groupBy('cm.id');
 
@@ -65,7 +65,7 @@ function find (connection, query) {
 
 		if (query.hasOwnProperty('hasTranslation')) {
 			if (query.hasTranslation) {
-				sql.joined('Mapping map', 'cm');
+				sql.joinOwning('Mapping map', 'cm');
 			}
 		}
 
