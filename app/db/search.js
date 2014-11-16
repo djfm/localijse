@@ -61,7 +61,15 @@ function find (connection, query) {
 		.where('BETWEEN', 'cat.lft', '?', '?')
 		.groupBy('cm.id');
 
-		return mysqhelp.query(connection, sql, [rootCategory.lft, rootCategory.rgt]);
+		var params = [rootCategory.lft, rootCategory.rgt];
+
+		if (query.hasOwnProperty('hasTranslation')) {
+			if (query.hasTranslation) {
+				sql.joined('Mapping map', 'cm');
+			}
+		}
+
+		return mysqhelp.query(connection, sql, params);
 	})
 	// wrap the results
 	.then(function (rows) {
