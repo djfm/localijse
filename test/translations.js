@@ -4,11 +4,9 @@ var chai = require('chai');
 chai.use(require('chai-as-promised'));
 chai.should();
 
-var users 			= require('../app/auth/users');
-
 var localijse = require('../app/localijse').init('test');
 
-describe.only("Translations", function () {
+describe("Translations", function () {
 	before(localijse.resetDatabase);
 	before(function () {
 		return localijse.addLanguage({
@@ -33,7 +31,7 @@ describe.only("Translations", function () {
 			}]);
 		})
 		.then(function () {
-			return localijse.findMessages({
+			return localijse.find({
 				path: 'Vendor/FirstProject/SomeVersion/Admin'
 			});
 		}).then(function (paginator) {

@@ -24,7 +24,7 @@ var treeHelper 	= require('../lib/tree-helper');
  *  or any falsey value, which means to disable the condition.
  */
 
-function findMessages (connection, query) {
+function find (connection, query) {
 	
 	/**
 	 * Normalize query.path
@@ -79,4 +79,4 @@ function findMessages (connection, query) {
 	}
 }
 
-exports.findMessages = findMessages;
+exports.find = find;

@@ -169,7 +169,7 @@ describe("Messages", function () {
 				context: 'button',
 				message: 'save'
 			}]).then(function () {
-				return localijse.findMessages({
+				return localijse.find({
 					path: 'PrestaShop'
 				});
 			}).then(function (paginator) {
@@ -186,7 +186,7 @@ describe("Messages", function () {
 				context: 'title',
 				message: 'hello'
 			}]).then(function () {
-				return localijse.findMessages({
+				return localijse.find({
 					path: 'PrestaShop'
 				});
 			}).then(function (paginator) {
@@ -203,7 +203,7 @@ describe("Messages", function () {
 				context: 'button',
 				message: 'save'
 			}]).then(function () {
-				return localijse.findMessages({
+				return localijse.find({
 					path: 'PrestaShop'
 				});
 			}).then(function (paginator) {
@@ -224,7 +224,7 @@ describe("Messages", function () {
 				context: 'button',
 				message: 'cancel'
 			}]).then(function () {
-				return localijse.findMessages({
+				return localijse.find({
 					path: 'PrestaShop'
 				});
 			}).then(function (paginator) {
@@ -241,7 +241,7 @@ describe("Messages", function () {
 				context: 'label',
 				message: 'hello'
 			}]).then(function () {
-				return localijse.findMessages({
+				return localijse.find({
 					path: 'PrestaShop'
 				});
 			}).then(function (paginator) {
@@ -258,7 +258,7 @@ describe("Messages", function () {
 				context: 'label',
 				message: 'hello'
 			}]).then(function () {
-				return localijse.findMessages({
+				return localijse.find({
 					path: 'PrestaShop'
 				});
 			}).then(function (paginator) {

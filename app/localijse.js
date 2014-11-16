@@ -51,7 +51,8 @@ function Localijse(config) {
 	this.addCategoryTree 	= categories.addCategoryTree.bind(undefined, connection);
 	this.getCategoryTree 	= categories.getCategoryTree.bind(undefined, connection);
 
-	this.findMessages	 	= search.findMessages.bind(undefined, connection);
+	this.find	 			= search.find.bind(undefined, connection);
+	
 	this.updateMessages  	= messages.updateMessages.bind(undefined, connection);
 	
 	this.addLanguage 		= languages.addLanguage.bind(undefined, connection);
