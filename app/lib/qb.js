@@ -1,6 +1,13 @@
 var _ = require('underscore');
 
-function qb() {
+function makeIdForTable (tableName) {
+	//CustomizedMessage
+	return tableName.replace(/([a-z]|[A-Z]+)([A-Z])/g, function (m, a, b) {
+		return a + '_' + b;
+	}).toLowerCase()+'_id';
+}
+
+function qb () {
 
 	var type = null;
 	var select = [], from = [], joins = [], where = [], groupBy = [];
@@ -29,7 +36,7 @@ function qb() {
 		return alias;
 	}
 
-	function getTable(alias) {
+	function getTable (alias) {
 		if (aliases.hasOwnProperty(alias)) {
 			return aliases[alias];
 		} else {
@@ -37,7 +44,7 @@ function qb() {
 		}
 	}
 
-	function buildSelect() {
+	function buildSelect () {
 		var sql = 'SELECT ' + select.join(', ');
 
 		if (from.length > 0) {
@@ -63,6 +70,33 @@ function qb() {
 		return sql;
 	}
 
+	function join (joinWhich, owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause) {
+
+		if (!referencedClause) {
+			referencedClause = referencedAlias + '.id';
+		}
+
+		if (!owningClause) {
+			owningClause = owningAlias + '.' + qb.makeIdForTable(referencedTable);
+		}
+
+		var table;
+
+		if (joinWhich === 'referenced') {
+			table = referencedTable;
+			if (referencedAlias !== referencedTable) {
+				table += ' ' + referencedAlias;
+			}
+		} else {
+			table = owningTable;
+			if (owningAlias !== owningTable) {
+				table += ' ' + owningAlias;
+			}
+		}
+
+		joins.push('INNER JOIN ' + table + ' ON ' + referencedClause + ' = ' + owningClause);
+	}
+
 	return {
 		select: function () {
 
@@ -77,28 +111,70 @@ function qb() {
 			if (alias) {
 				table = table + ' ' + alias;
 				saveAlias(table, alias);
+			} else {
+				saveAlias(table, table);
 			}
 
 			from.push(table);
 
 			return this;
 		},
-		join: function (tableWithMaybeAlias, joinTarget, joinSource) {
+		/**
+		 * Joins a table, with aliasOrField being interpreted as the owning side, i.e.:
+		 * join('B b', 'A') => INNER JOIN B b ON b.id = A.b_id
+		 */
+		join: function (tableIntroduced, aliasOrField, maybeField) {
 
-			var sourceAlias = saveAlias(tableWithMaybeAlias);
-			var sourceTable = getTable(sourceAlias);
+			var referencedAlias = saveAlias(tableIntroduced);
+			var referencedTable = getTable(referencedAlias);
 
-			if (!joinSource) {
-				joinSource = sourceAlias + '.id';
+			var owningTable, owningAlias;
+			var owningClause, referencedClause;
+
+			var m = /^(\w+)\.(\w+)$/.exec(aliasOrField.trim());
+			if (m) {
+				owningAlias 	= m[1];
+				owningTable 	= getTable(owningAlias);
+				owningClause 	= aliasOrField;
+			} else {
+				owningAlias = aliasOrField;
+				owningTable = getTable(owningAlias);
 			}
 
-			if (!/\w+\.\w+/.exec(joinTarget)) {
-				joinTarget = joinTarget + '.' + this.makeIdForTable(sourceTable);
+			if (maybeField) {
+				joins.push('INNER JOIN ' + tableIntroduced + ' ON ' + maybeField + ' = ' + aliasOrField);
+			} else {
+				join('referenced', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause);
 			}
 
-			var join = 'INNER JOIN ' + tableWithMaybeAlias + ' ON ' + joinSource + ' = ' + joinTarget;
-			
-			joins.push(join);
+			return this;
+		},
+		/**
+		 * Joins a table, with tableIntroduced being interpreted as the owning side, i.e.:
+		 * joined('B b', 'A') => INNER JOIN B b ON a.id = B.a_id
+		 */
+		joined: function (tableIntroduced, aliasOrField, maybeField) {
+			var owningAlias = saveAlias(tableIntroduced);
+			var owningTable = getTable(owningAlias);
+
+			var referencedTable, referencedAlias;
+			var owningClause, referencedClause;
+
+			var m = /^(\w+)\.(\w+)$/.exec(aliasOrField.trim());
+			if (m) {
+				referencedAlias 	= m[1];
+				referencedTable 	= getTable(referencedAlias);
+				referencedClause 	= aliasOrField;
+			} else {
+				referencedAlias = aliasOrField;
+				referencedTable = getTable(referencedAlias);
+			}
+
+			if (maybeField) {
+				joins.push('INNER JOIN ' + tableIntroduced + ' ON ' + maybeField + ' = ' + aliasOrField);
+			} else {
+				join('owning', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause);
+			}
 
 			return this;
 		},
@@ -117,12 +193,6 @@ function qb() {
 		},
 		toString: function () {
 			return this.getQuery();
-		},
-		makeIdForTable: function (tableName) {
-			//CustomizedMessage
-			return tableName.replace(/([a-z]|[A-Z]+)([A-Z])/g, function (m, a, b) {
-				return a + '_' + b;
-			}).toLowerCase()+'_id';
 		}
 	};
 }
@@ -190,5 +260,6 @@ function condition () {
 }
 
 qb.condition = condition;
+qb.makeIdForTable = makeIdForTable;
 
 module.exports = qb;

@@ -4,13 +4,13 @@ var qb = require('../app/lib/qb');
 
 /* global describe, it */
 
-describe('Query builder', function () {
+describe.only('Query builder', function () {
 
 	describe('makeIdForTable', function () {
 		it('should convert CamelCase', function () {
-			qb().makeIdForTable('CamelCase').should.equal('camel_case_id');
-			qb().makeIdForTable('ACRONYMCamelCase').should.equal('acronym_camel_case_id');
-			qb().makeIdForTable('ABCdef').should.equal('ab_cdef_id');
+			qb.makeIdForTable('CamelCase').should.equal('camel_case_id');
+			qb.makeIdForTable('ACRONYMCamelCase').should.equal('acronym_camel_case_id');
+			qb.makeIdForTable('ABCdef').should.equal('ab_cdef_id');
 		});
 	});
 
@@ -29,6 +29,18 @@ describe('Query builder', function () {
 		.from('A')
 		.join('B b', 'A')
 		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON b.id = A.b_id');
+
+		qb()
+		.select('a.x')
+		.from('A')
+		.joined('B b', 'A')
+		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON A.id = b.a_id');
+
+		qb()
+		.select('a.x')
+		.from('A')
+		.joined('B b', 'A.z')
+		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON A.z = b.a_id');
 
 		qb()
 		.select('a.x')
