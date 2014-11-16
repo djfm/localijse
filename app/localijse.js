@@ -6,6 +6,7 @@ var _ 				= require('underscore');
 
 var categories 		= require('./db/categories');
 var languages 		= require('./db/languages');
+var mappingStatuses = require('./db/mapping-statuses');
 var messages 		= require('./db/messages');
 var mysqhelp   		= require('./lib/mysqhelp');
 var search	 		= require('./db/search');
@@ -59,6 +60,9 @@ function Localijse(config) {
 	this.addTranslation 	= translations.addTranslation.bind(undefined, connection);
 
 	this.addUser			= users.addUser.bind(undefined, connection);
+	this.findUser			= users.findUser.bind(undefined, connection);
+
+	this.getMappingStatusId	= mappingStatuses.getMappingStatusId.bind(undefined, connection);
 }
 
 exports.init = function (environment) {

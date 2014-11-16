@@ -50,5 +50,23 @@ function addUser (connection, user) {
 	return user.save(connection);
 }
 
+function findUser (connection, query) {
+	if (typeof query === 'string') {
+		query = {username: query};
+	}
+
+	query = _.pick(query, 'username', 'id');
+
+	return mysqhelp.query(connection, 'SELECT * FROM User WHERE ?', [query])
+	.then(function (rows) {
+		if (rows.length === 0) {
+			return q.reject(new Error('Unknown user!'));
+		} else {
+			return q(new User(rows[0]));
+		}
+	});
+}
+
 exports.User = User;
 exports.addUser = addUser;
+exports.findUser = findUser;
