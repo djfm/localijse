@@ -6,7 +6,7 @@ chai.should();
 
 var localijse = require('../app/localijse').init('test');
 
-describe("Translations", function () {
+describe.only("Translations", function () {
 	before(localijse.resetDatabase);
 	before(function () {
 		return localijse.addLanguage({
@@ -54,6 +54,7 @@ describe("Translations", function () {
 				locale: 'fr_FR'
 			}).then(function (paginator) {
 				console.log(paginator);
+				paginator.hits[0].translation.should.equal('Bienvenue !');
 			});
 		})
 		.then(done.bind(undefined, null))

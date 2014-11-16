@@ -11,6 +11,7 @@ function qb () {
 
 	var type = null;
 	var select = [], from = [], joins = [], where = [], groupBy = [];
+	var limit, offset;
 	var aliases = {};
 
 	function saveAlias (tableMaybeAliased, alias) {
@@ -67,6 +68,13 @@ function qb () {
 			sql = sql + ' GROUP BY ' + groupBy.join(', ');
 		}
 
+		if (limit) {
+			sql = sql + ' LIMIT ' + limit;
+			if (offset) {
+				sql = sql + ' OFFSET ' + offset;
+			}
+		}
+
 		return sql;
 	}
 
@@ -103,6 +111,13 @@ function qb () {
 			type = type || 'select';
 
 			select = select.concat(_.toArray(arguments));
+
+			return this;
+		},
+		clearSelect: function () {
+			select = [];
+
+			this.select.apply(this, arguments);
 
 			return this;
 		},
@@ -190,6 +205,16 @@ function qb () {
 			if (type === 'select') {
 				return buildSelect.apply(undefined, arguments);
 			}
+		},
+		limit: function (number) {
+			limit = number;
+
+			return this;
+		},
+		offset: function (number) {
+			offset = number;
+
+			return this;
 		},
 		toString: function () {
 			return this.getQuery();

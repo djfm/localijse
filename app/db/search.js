@@ -2,6 +2,7 @@ var q 			= require('q');
 var _ 			= require('underscore');
 
 var categories  = require('../db/categories');
+var languages 	= require('../db/languages');
 var mysqhelp  	= require('../lib/mysqhelp');
 var qb  		= require('../lib/qb');
 var treeHelper 	= require('../lib/tree-helper');
@@ -42,18 +43,24 @@ function find (connection, query) {
 		return q.reject(new Error('Need to specify at least the vendor part of the path.'));
 	}
 
+	query.hitsPerPage = +(query.hitsPerPage || 0);
+	query.page = +(query.page || 0);
 
+	if (isNaN(query.hitsPerPage) || query.hitsPerPage < 1 || query.hitsPerPage > 25) {
+		query.hitsPerPage = 25;
+	}
 
-	return categories.getCategoryTree(connection)
-	.then(function (tree) {
-		return q(
-			treeHelper.getNodeAtPath(tree, query.path));
-	})
-	// get the messages
-	.then(function (rootCategory) {
+	if (isNaN(query.page) || query.page < 1) {
+		query.page = 1;
+	}
+
+	var rootCategory;
+
+	function buildQuery (forCount) {
+
+		var forReal = !forCount;
 
 		var sql = qb()
-		.select('cm.id as contextualized_message_id', 'm.message')
 		.from('ContextualizedMessage', 'cm')
 		.joinReferenced('Message m', 'cm')
 		.joinOwning('Classification c', 'cm')
@@ -66,21 +73,79 @@ function find (connection, query) {
 		if (query.hasOwnProperty('hasTranslation')) {
 			if (query.hasTranslation) {
 				sql.joinOwning('Mapping map', 'cm');
+				sql.joinReferenced('MappingVersion v', 'map');
+				sql.joinReferenced('Translation t', 'v');
+				sql.joinReferenced('Language l', 't');
+
+				sql.where('=', 'l.locale', '?');
+				params.push(languages.normalizeLocale(query.locale));
+
+				if (forReal) {
+					sql.joinReferenced('MappingStatus st', 'v');
+					sql.joinReferenced('User uc', 'v.created_by');
+					sql.joinReferenced('User ur', 'v.reviewed_by');
+					sql.select('st.name as status');
+					sql.select('map.plurality as translation_plurality');
+					sql.select('t.translation');
+					sql.select('uc.username as created_by', 'ur.username as reviewed_by');
+					sql.select('v.created_at');
+					sql.select('l.locale', 'l.name as language');
+					sql.groupBy('map.id');
+				}
 			}
 		}
 
-		return mysqhelp.query(connection, sql, params);
-	})
-	// wrap the results
-	.then(function (rows) {
-		var paginator = {
-			totalCount: rows.length,
-			retrievedCount: rows.length,
-			hits: _.map(rows, formatRowForOutput)
-		};
+		if (forCount) {
+			sql.select('COUNT (cm.id) as totalCount');
+		} else {
+			sql.select('cm.id as contextualized_message_id', 'cm.plurality as message_plurality');
+			sql.limit(query.hitsPerPage).offset((query.page - 1) * query.hitsPerPage);
+		}
 
-		return q(paginator);
+		return {
+			sql: sql,
+			params: params
+		};
+	}
+
+	return categories.getCategoryTree(connection)
+	.then(function (tree) {
+		return q(
+			treeHelper.getNodeAtPath(tree, query.path));
+	})
+	// Count the results
+	.then(function (cat) {
+		rootCategory = cat;
+		var forCount = true;
+		var sql = buildQuery(forCount);
+		return mysqhelp.query(connection, sql.sql, sql.params).get(0).get('totalCount');
+	})
+	// Get the paginated results
+	.then(function (totalCount) {
+		var forCount = true;
+		var sql = buildQuery(!forCount);
+		return mysqhelp.query(connection, sql.sql, sql.params).then(function (rows) {
+			
+			var hits = buildHits(rows);
+			var retrievedCount = hits.length;
+			var pageCount = Math.ceil(totalCount / query.hitsPerPage);
+			var page = query.page;
+
+			var paginator = {
+				page: page,
+				pageCount: pageCount,
+				totalCount: totalCount,
+				retrievedCount: retrievedCount,
+				hits: hits
+			};
+
+			return q(paginator);
+		});
 	});
+
+	function buildHits(rows) {
+		return _.map(rows, formatRowForOutput);
+	}
 
 	function formatRowForOutput(row) {
 		return row;
