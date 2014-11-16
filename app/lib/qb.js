@@ -75,7 +75,7 @@ function qb () {
 		if (!referencedClause) {
 			referencedClause = referencedAlias + '.id';
 		}
-
+		console.log(referencedTable, qb.makeIdForTable(referencedTable));
 		if (!owningClause) {
 			owningClause = owningAlias + '.' + qb.makeIdForTable(referencedTable);
 		}
@@ -109,8 +109,8 @@ function qb () {
 		from: function (table, alias) {
 
 			if (alias) {
-				table = table + ' ' + alias;
 				saveAlias(table, alias);
+				table = table + ' ' + alias;
 			} else {
 				saveAlias(table, table);
 			}
