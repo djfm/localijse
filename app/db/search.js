@@ -99,6 +99,7 @@ function find (connection, query) {
 			sql.select('COUNT (cm.id) as totalCount');
 		} else {
 			sql.select('cm.id as contextualized_message_id', 'cm.plurality as message_plurality');
+			sql.select('m.message');
 			sql.limit(query.hitsPerPage).offset((query.page - 1) * query.hitsPerPage);
 		}
 
@@ -137,6 +138,8 @@ function find (connection, query) {
 	.then(function (totalCount) {
 		var forCount = true;
 		var sql = buildQuery(!forCount);
+
+		// console.log(sql.sql.toString());
 
 		if (totalCount === 0) {
 			return q({

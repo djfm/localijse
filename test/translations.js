@@ -17,6 +17,20 @@ describe.only("Translations", function () {
 
 	var contextualized_message_id, user;
 	
+	var messages = [{
+		path: 'Vendor/FirstProject/V1/Admin',
+		context: 'title',
+		message: 'Welcome!'
+	},{
+		path: 'Vendor/FirstProject/V1/Admin',
+		context: 'button',
+		message: 'Save'
+	},{
+		path: 'Vendor/FirstProject/V2/Admin',
+		context: 'title',
+		message: 'Welcome!'
+	}];
+
 	before(function () {
 		return localijse.addUser({username: 'testUser'})
 		.then(function (u) {
@@ -24,18 +38,15 @@ describe.only("Translations", function () {
 			user.setAlmighty(true);
 		})
 		.then(function () {
-			return localijse.updateMessages([{
-				path: 'Vendor/FirstProject/SomeVersion/Admin',
-				context: 'title',
-				message: 'Welcome!'
-			}]);
+			return localijse.updateMessages(messages);
 		})
 		.then(function () {
 			return localijse.find({
-				path: 'Vendor/FirstProject/SomeVersion/Admin'
+				path: 'Vendor/FirstProject/'
 			});
 		}).then(function (paginator) {
-			paginator.retrievedCount.should.equal(1);
+			paginator.retrievedCount.should.equal(2);
+			paginator.hits[0].message.should.equal("Welcome!");
 			contextualized_message_id = paginator.hits[0].contextualized_message_id;
 		});
 	});
@@ -58,11 +69,20 @@ describe.only("Translations", function () {
 		.notify(done);
 	});
 
-	it("should not find unexisting message", function (done) {
+	it("should not find unexisting message (with translation)", function (done) {
 		localijse.find({
 			path: 'Vendor',
 			message:'Not existing!',
 			hasTranslation: true,
+			locale: 'fr_FR'
+		}).get('totalCount').should.become(0).notify(done);
+	});
+
+	it("should not find unexisting message (without translation)", function (done) {
+		localijse.find({
+			path: 'Vendor',
+			message:'Not existing!',
+			hasTranslation: false,
 			locale: 'fr_FR'
 		}).get('totalCount').should.become(0).notify(done);
 	});
@@ -87,7 +107,7 @@ describe.only("Translations", function () {
 
 	it("should only find one translation, because there is just one (with 2 versions)", function (done) {
 		localijse.find({
-			path: 'Vendor',
+			path: 'Vendor/FirstProject/V1',
 			hasTranslation: true,
 			locale: 'fr_FR'
 		}).get('totalCount').should.become(1).notify(done);
