@@ -53,7 +53,6 @@ describe.only("Translations", function () {
 				hasTranslation: true,
 				locale: 'fr_FR'
 			}).then(function (paginator) {
-				console.log(paginator);
 				paginator.hits[0].translation.should.equal('Bienvenue !');
 			});
 		})
@@ -61,5 +60,44 @@ describe.only("Translations", function () {
 		.fail(function (err) {
 			done(err);
 		});
+	});
+
+	it("should not find unexisting message", function (done) {
+		localijse.find({
+			path: 'Vendor',
+			message:'Not existing!',
+			hasTranslation: true,
+			locale: 'fr_FR'
+		}).get('totalCount').should.become(0).notify(done);
+	});
+
+	it("should add a translation to a message with a previous translation", function (done) {
+		localijse.addTranslation(user, contextualized_message_id, {
+			locale: 'fr_FR',
+			translation: 'Bienvenue 2!',
+			mappingStatus: 'imported'
+		})
+		.then(function () {
+			return localijse.find({
+				path: 'Vendor',
+				message: 'Welcome!',
+				hasTranslation: true,
+				locale: 'fr_FR'
+			}).then(function (paginator) {
+				paginator.hits[0].translation.should.equal('Bienvenue 2!');
+			});
+		})
+		.then(done.bind(undefined, null))
+		.fail(function (err) {
+			done(err);
+		});
+	});
+
+	it("should only find one translation, because there is just one (with 2 versions)", function (done) {
+		localijse.find({
+			path: 'Vendor',
+			hasTranslation: true,
+			locale: 'fr_FR'
+		}).get('totalCount').should.become(1).notify(done);
 	});
 });

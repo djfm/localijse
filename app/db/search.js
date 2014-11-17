@@ -102,6 +102,13 @@ function find (connection, query) {
 			sql.limit(query.hitsPerPage).offset((query.page - 1) * query.hitsPerPage);
 		}
 
+		if (query.message) {
+			if (typeof query.message === 'string') {
+				sql.where('=', 'm.message', '?');
+				params.push(query.message);
+			}
+		}
+
 		return {
 			sql: sql,
 			params: params
@@ -118,14 +125,30 @@ function find (connection, query) {
 		rootCategory = cat;
 		var forCount = true;
 		var sql = buildQuery(forCount);
-		return mysqhelp.query(connection, sql.sql, sql.params).get(0).get('totalCount');
+		return mysqhelp.query(connection, sql.sql, sql.params).then(function (rows) {
+			if (rows && rows.length === 0) {
+				return 0;
+			} else {
+				return rows[0].totalCount;
+			}
+		});
 	})
 	// Get the paginated results
 	.then(function (totalCount) {
 		var forCount = true;
 		var sql = buildQuery(!forCount);
+
+		if (totalCount === 0) {
+			return q({
+				page: 0,
+				pageCount: 0,
+				totalCount: 0,
+				retrievedCount: 0,
+				hits: []
+			});
+		}
+
 		return mysqhelp.query(connection, sql.sql, sql.params).then(function (rows) {
-			
 			var hits = buildHits(rows);
 			var retrievedCount = hits.length;
 			var pageCount = Math.ceil(totalCount / query.hitsPerPage);
