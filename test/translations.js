@@ -6,7 +6,7 @@ chai.should();
 
 var localijse = require('../app/localijse').init('test');
 
-describe.only("Translations", function () {
+describe("Translations", function () {
 	before(localijse.resetDatabase);
 	before(function () {
 		return localijse.addLanguage({

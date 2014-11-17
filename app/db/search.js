@@ -65,8 +65,11 @@ function find (connection, query) {
 		.joinReferenced('Message m', 'cm')
 		.joinOwning('Classification c', 'cm')
 		.joinReferenced('Category cat', 'c')
-		.where('BETWEEN', 'cat.lft', '?', '?')
-		.groupBy('cm.id');
+		.where('BETWEEN', 'cat.lft', '?', '?');
+
+		if (forReal) {
+			sql.groupBy('cm.id');
+		}
 
 		var params = [rootCategory.lft, rootCategory.rgt];
 
@@ -96,7 +99,7 @@ function find (connection, query) {
 		}
 
 		if (forCount) {
-			sql.select('COUNT (cm.id) as totalCount');
+			sql.select('count(DISTINCT cm.id) as totalCount');
 		} else {
 			sql.select('cm.id as contextualized_message_id', 'cm.plurality as message_plurality');
 			sql.select('m.message');
@@ -110,7 +113,7 @@ function find (connection, query) {
 			}
 		}
 
-		sql.orderBy('MIN (c.position)');
+		//sql.orderBy('MIN(c.position)');
 
 		return {
 			sql: sql,
@@ -128,6 +131,9 @@ function find (connection, query) {
 		rootCategory = cat;
 		var forCount = true;
 		var sql = buildQuery(forCount);
+
+		// console.log(sql.sql.toString(), sql.params);
+
 		return mysqhelp.query(connection, sql.sql, sql.params).then(function (rows) {
 			if (rows && rows.length === 0) {
 				return 0;
@@ -141,7 +147,7 @@ function find (connection, query) {
 		var forCount = true;
 		var sql = buildQuery(!forCount);
 
-		// console.log(sql.sql.toString());
+		// console.log(sql.sql.toString(), sql.params);
 
 		if (totalCount === 0) {
 			return q({
