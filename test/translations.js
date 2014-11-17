@@ -52,14 +52,10 @@ describe.only("Translations", function () {
 				message: 'Welcome!',
 				hasTranslation: true,
 				locale: 'fr_FR'
-			}).then(function (paginator) {
-				paginator.hits[0].translation.should.equal('Bienvenue !');
 			});
 		})
-		.then(done.bind(undefined, null))
-		.fail(function (err) {
-			done(err);
-		});
+		.get("hits").get(0).get('translation').should.become('Bienvenue !')
+		.notify(done);
 	});
 
 	it("should not find unexisting message", function (done) {
@@ -83,14 +79,10 @@ describe.only("Translations", function () {
 				message: 'Welcome!',
 				hasTranslation: true,
 				locale: 'fr_FR'
-			}).then(function (paginator) {
-				paginator.hits[0].translation.should.equal('Bienvenue 2!');
 			});
 		})
-		.then(done.bind(undefined, null))
-		.fail(function (err) {
-			done(err);
-		});
+		.get("hits").get(0).get('translation').should.become('Bienvenue 2!')
+		.notify(done);
 	});
 
 	it("should only find one translation, because there is just one (with 2 versions)", function (done) {
