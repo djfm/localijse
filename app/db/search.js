@@ -110,6 +110,8 @@ function find (connection, query) {
 			}
 		}
 
+		sql.orderBy('MIN (c.position)');
+
 		return {
 			sql: sql,
 			params: params

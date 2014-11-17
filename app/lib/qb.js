@@ -10,7 +10,7 @@ function makeIdForTable (tableName) {
 function qb () {
 
 	var type = null;
-	var select = [], from = [], joins = [], where = [], groupBy = [];
+	var select = [], from = [], joins = [], where = [], groupBy = [], orderBy = [];
 	var limit, offset;
 	var aliases = {};
 
@@ -66,6 +66,10 @@ function qb () {
 
 		if (groupBy.length > 0) {
 			sql = sql + ' GROUP BY ' + groupBy.join(', ');
+		}
+
+		if (orderBy.length > 0) {
+			sql = sql + ' ORDER BY ' + orderBy.join(', ');
 		}
 
 		if (limit) {
@@ -201,6 +205,10 @@ function qb () {
 			groupBy = groupBy.concat(_.toArray(arguments));
 			return this;
 		},
+		orderBy: function () {
+			orderBy = orderBy.concat(_.toArray(arguments));
+			return this;
+		},
 		getQuery: function () {
 			if (type === 'select') {
 				return buildSelect.apply(undefined, arguments);
@@ -208,12 +216,10 @@ function qb () {
 		},
 		limit: function (number) {
 			limit = number;
-
 			return this;
 		},
 		offset: function (number) {
 			offset = number;
-
 			return this;
 		},
 		toString: function () {
