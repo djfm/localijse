@@ -6,7 +6,7 @@ var makeIdForTable = qb.defaultConfig.makeIdForTable;
 
 /* global describe, it */
 
-describe.only('Query builder', function () {
+describe('Query builder', function () {
 
 	describe('makeIdForTable', function () {
 		it('should convert CamelCase', function () {
