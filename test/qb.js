@@ -30,62 +30,62 @@ describe('Query builder', function () {
 		.select('a.x')
 		.from('A', 'a')
 		.joinReferenced('B b', 'a')
-		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON b.id = a.b_id');
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON (b.id = a.b_id)');
 
 		qb()
 		.select('a.x')
 		.from('A', 'a')
 		.leftJoinReferenced('B b', 'a')
-		.getQuery().should.equal('SELECT a.x FROM A a LEFT JOIN B b ON b.id = a.b_id');
+		.getQuery().should.equal('SELECT a.x FROM A a LEFT JOIN B b ON (b.id = a.b_id)');
 
 		qb()
 		.select('a.x')
 		.from('A', 'a')
 		.rightJoinReferenced('B b', 'a')
-		.getQuery().should.equal('SELECT a.x FROM A a RIGHT JOIN B b ON b.id = a.b_id');
+		.getQuery().should.equal('SELECT a.x FROM A a RIGHT JOIN B b ON (b.id = a.b_id)');
 
 		qb()
 		.select('a.x')
 		.from('A', 'a')
 		.joinOwning('B b', 'a')
-		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON a.id = b.a_id');
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON (a.id = b.a_id)');
 
 		qb()
 		.select('a.x')
 		.from('A', 'a')
 		.leftJoinOwning('B b', 'a')
-		.getQuery().should.equal('SELECT a.x FROM A a LEFT JOIN B b ON a.id = b.a_id');
+		.getQuery().should.equal('SELECT a.x FROM A a LEFT JOIN B b ON (a.id = b.a_id)');
 
 		qb()
 		.select('a.x')
 		.from('A', 'a')
 		.rightJoinOwning('B b', 'a')
-		.getQuery().should.equal('SELECT a.x FROM A a RIGHT JOIN B b ON a.id = b.a_id');
+		.getQuery().should.equal('SELECT a.x FROM A a RIGHT JOIN B b ON (a.id = b.a_id)');
 
 		qb()
 		.select('a.x')
 		.from('A', 'a')
 		.joinOwning('B b', 'a.z')
-		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON a.z = b.a_id');
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON (a.z = b.a_id)');
 
 		qb()
 		.select('a.x')
 		.from('A', 'a')
 		.joinReferenced('B b', 'a.b_id')
-		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON b.id = a.b_id');
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON (b.id = a.b_id)');
 
 		qb()
 		.select('a.x')
 		.from('A', 'a')
 		.joinReferenced('B b', 'a.b_id', 'x.y')
-		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON x.y = a.b_id');
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON (x.y = a.b_id)');
 
 		var parts = [
 			'SELECT cm.id, m.message',
 			'FROM ContextualizedMessage cm',
-			'INNER JOIN Message m ON m.id = cm.message_id',
-			'INNER JOIN Classification c ON c.contextualized_message_id = cm.id',
-			'INNER JOIN Category cat ON cat.id = c.category_id',
+			'INNER JOIN Message m ON (m.id = cm.message_id)',
+			'INNER JOIN Classification c ON (c.contextualized_message_id = cm.id)',
+			'INNER JOIN Category cat ON (cat.id = c.category_id)',
 			'WHERE (cat.lft BETWEEN ? AND ?)',
 			'GROUP BY cm.id'
 		];
@@ -121,6 +121,16 @@ describe('Query builder', function () {
 
 			});
 		}).toString().should.equal('((x < 1) AND ((y > 2) OR (z < 3)))');
+	});
+
+	it('Should make a join with advanced conditions', function () {
+		qb()
+		.select('a.x')
+		.from('A', 'a')
+		.joinReferenced('B b', 'a', function (cond) {
+			cond('=', 'b.z', 4);
+		})
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON (b.id = a.b_id) AND (b.z = 4)');
 	});
 
 	it("Should generate where clauses", function () {

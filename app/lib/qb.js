@@ -53,8 +53,6 @@ function condition () {
 				throw new Error('Invalid nesting type, should be `and` or `or`, got `' + type + '`.');
 			}
 		}
-
-		return "NIY";
 	}
 
 	return {
@@ -139,7 +137,25 @@ function qb (config) {
 		return sql;
 	}
 
-	function join (joinType, joinWhich, owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause) {
+	function addJoin () {
+		var args = _.toArray(arguments);
+
+		var type = args[0];
+		var table = args[1];
+		var conditions = args.slice(2).reduce(function (soFar, c) {
+			if (c) {
+				soFar.push(c.toString());
+			}
+			return soFar;
+		}, []);
+
+		conditions = _.map(conditions, function (c) {
+			return c.toString();
+		});
+		joins.push([type, table, 'ON'].concat(conditions.join(' AND ')).join(' '));
+	}
+
+	function join (joinType, joinWhich, owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause, cond) {
 
 		if (!referencedClause) {
 			referencedClause = referencedAlias + '.id';
@@ -165,10 +181,23 @@ function qb (config) {
 
 		joinType = joinType || 'INNER JOIN';
 
-		joins.push([joinType, table, 'ON', referencedClause, '=', owningClause].join(' '));
+		addJoin(joinType, table, condition('=', referencedClause, owningClause), cond);
 	}
 
-	function joinReferenced (joinType, tableIntroduced, aliasOrField, maybeField) {
+	function joinReferenced (joinType, tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder) {
+		
+		var field, cond;
+		if (fieldOrConditionBuilder) {
+			if (Object.prototype.toString.call(fieldOrConditionBuilder) === '[object Function]') {
+				cond = fieldOrConditionBuilder;
+			} else {
+				field = fieldOrConditionBuilder;
+				if (Object.prototype.toString.call(maybeConditionBuilder) === '[object Function]') {
+					cond = maybeConditionBuilder;
+				}
+			}
+		}
+
 		var referencedAlias = saveAlias(tableIntroduced);
 		var referencedTable = getTable(referencedAlias);
 
@@ -185,14 +214,33 @@ function qb (config) {
 			owningTable = getTable(owningAlias);
 		}
 
-		if (maybeField) {
-			joins.push([joinType, tableIntroduced, 'ON', maybeField, '=', aliasOrField].join(' '));
+		if (cond) {
+			cond(function () {
+				cond = condition.apply(undefined, arguments);
+			});
+		}
+
+		if (field) {
+			addJoin(joinType, tableIntroduced, condition('=', field, aliasOrField), cond);
 		} else {
-			join(joinType, 'referenced', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause);
+			join(joinType, 'referenced', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause, cond);
 		}
 	}
 
-	function joinOwning (joinType, tableIntroduced, aliasOrField, maybeField) {
+	function joinOwning (joinType, tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder) {
+		
+		var field, cond;
+		if (fieldOrConditionBuilder) {
+			if (Object.prototype.toString.call(fieldOrConditionBuilder) === '[object Function]') {
+				cond = fieldOrConditionBuilder;
+			} else {
+				field = fieldOrConditionBuilder;
+				if (Object.prototype.toString.call(maybeConditionBuilder) === '[object Function]') {
+					cond = maybeConditionBuilder;
+				}
+			}
+		}
+
 		var owningAlias = saveAlias(tableIntroduced);
 		var owningTable = getTable(owningAlias);
 
@@ -209,10 +257,16 @@ function qb (config) {
 			referencedTable = getTable(referencedAlias);
 		}
 
-		if (maybeField) {
-			joins.push([joinType, tableIntroduced, 'ON', maybeField, '=', aliasOrField].join(' '));
+		if (cond) {
+			cond(function () {
+				cond = condition.apply(undefined, arguments);
+			});
+		}
+
+		if (field) {
+			addJoin(joinType, tableIntroduced, condition('=', field, aliasOrField), cond);
 		} else {
-			join(joinType, 'owning', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause);
+			join(joinType, 'owning', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause, cond);
 		}
 	}
 
@@ -249,32 +303,32 @@ function qb (config) {
 		 * Joins a table, with tableIntroduced being interpreted as the referenced side, i.e.:
 		 * join('B b', 'A') => INNER JOIN B b ON b.id = A.b_id
 		 */
-		joinReferenced: function (tableIntroduced, aliasOrField, maybeField) {
-			joinReferenced('INNER JOIN', tableIntroduced, aliasOrField, maybeField);
+		joinReferenced: function (tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder) {
+			joinReferenced('INNER JOIN', tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder);
 			return this;
 		},
-		leftJoinReferenced: function (tableIntroduced, aliasOrField, maybeField) {
-			joinReferenced('LEFT JOIN', tableIntroduced, aliasOrField, maybeField);
+		leftJoinReferenced: function (tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder) {
+			joinReferenced('LEFT JOIN', tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder);
 			return this;
 		},
-		rightJoinReferenced: function (tableIntroduced, aliasOrField, maybeField) {
-			joinReferenced('RIGHT JOIN', tableIntroduced, aliasOrField, maybeField);
+		rightJoinReferenced: function (tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder) {
+			joinReferenced('RIGHT JOIN', tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder);
 			return this;
 		},
 		/**
 		 * Joins a table, with tableIntroduced being interpreted as the owning side, i.e.:
 		 * joined('B b', 'A') => INNER JOIN B b ON a.id = B.a_id
 		 */
-		joinOwning: function (tableIntroduced, aliasOrField, maybeField) {
-			joinOwning('INNER JOIN', tableIntroduced, aliasOrField, maybeField);
+		joinOwning: function (tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder) {
+			joinOwning('INNER JOIN', tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder);
 			return this;
 		},
-		leftJoinOwning: function (tableIntroduced, aliasOrField, maybeField) {
-			joinOwning('LEFT JOIN', tableIntroduced, aliasOrField, maybeField);
+		leftJoinOwning: function (tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder) {
+			joinOwning('LEFT JOIN', tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder);
 			return this;
 		},
-		rightJoinOwning: function (tableIntroduced, aliasOrField, maybeField) {
-			joinOwning('RIGHT JOIN', tableIntroduced, aliasOrField, maybeField);
+		rightJoinOwning: function (tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder) {
+			joinOwning('RIGHT JOIN', tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder);
 			return this;
 		},
 		where: function () {

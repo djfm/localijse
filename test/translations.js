@@ -112,4 +112,16 @@ describe("Translations", function () {
 			locale: 'fr_FR'
 		}).get('totalCount').should.become(1).notify(done);
 	});
+
+	it("should find one message missing a translation in French", function (done) {
+		localijse.find({
+			path: 'Vendor/',
+			hasTranslation: false,
+			locale: 'fr_FR'
+		}).then(function (paginator) {
+			paginator.totalCount.should.equal(1);
+			paginator.hits[0].message.shoul.equal('Save');
+			done();
+		}).fail(done);
+	});
 });

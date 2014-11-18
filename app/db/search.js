@@ -95,7 +95,7 @@ function find (connection, query) {
 					sql.select('l.locale', 'l.name as language');
 					sql.groupBy('map.id');
 				}
-			}
+			} 
 		}
 
 		if (forCount) {
