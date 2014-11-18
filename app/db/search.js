@@ -65,13 +65,17 @@ function find (connection, query) {
 		.joinReferenced('Message m', 'cm')
 		.joinOwning('Classification c', 'cm')
 		.joinReferenced('Category cat', 'c')
-		.where('BETWEEN', 'cat.lft', '?', '?');
+		.where('BETWEEN', 'cat.lft', ':lft', ':rgt');
 
 		if (forReal) {
 			sql.groupBy('cm.id');
 		}
 
-		var params = [rootCategory.lft, rootCategory.rgt];
+		var params = {
+			lft: rootCategory.lft,
+			rgt: rootCategory.rgt,
+			locale: languages.normalizeLocale(query.locale)
+		};
 
 		if (query.hasOwnProperty('hasTranslation')) {
 			if (query.hasTranslation) {
@@ -80,8 +84,7 @@ function find (connection, query) {
 				sql.joinReferenced('Translation t', 'v');
 				sql.joinReferenced('Language l', 't');
 
-				sql.where('=', 'l.locale', '?');
-				params.push(languages.normalizeLocale(query.locale));
+				sql.where('=', 'l.locale', ':locale');
 
 				if (forReal) {
 					sql.joinReferenced('MappingStatus st', 'v');
@@ -95,6 +98,15 @@ function find (connection, query) {
 					sql.select('l.locale', 'l.name as language');
 					sql.groupBy('map.id');
 				}
+			} else {
+				sql.leftJoinOwning('Mapping map', 'cm');
+				sql.leftJoinReferenced('MappingVersion v', 'map');
+				sql.leftJoinReferenced('Translation t', 'v');
+				sql.leftJoinReferenced('Language l', 't', function (condition) {
+					condition('=', 'l.locale', ':locale');
+				});
+
+				sql.where('IS NULL', 't.id');
 			} 
 		}
 
@@ -108,12 +120,13 @@ function find (connection, query) {
 
 		if (query.message) {
 			if (typeof query.message === 'string') {
-				sql.where('=', 'm.message', '?');
-				params.push(query.message);
+				sql.where('=', 'm.message', ':message');
+				params.message = query.message;
 			}
 		}
 
 		//sql.orderBy('MIN(c.position)');
+		// console.log(sql.toString());
 
 		return {
 			sql: sql,

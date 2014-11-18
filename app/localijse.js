@@ -1,5 +1,6 @@
 var fs 				= require('fs');
 var mysql 			= require('mysql');
+var SqlString		= require('mysql/lib/protocol/SqlString');
 var q 				= require('q');
 var spawn 			= require('child_process').spawn;
 var _ 				= require('underscore');
@@ -15,7 +16,28 @@ var users			= require('./auth/users');
 
 function Localijse(config) {
 
-	var connection = mysql.createConnection(config.database);
+	var connectionConfig = config.database;
+
+	connectionConfig.queryFormat = function (sql, values) {
+		if (!values) {
+			return sql;
+		}
+
+		if (Object.prototype.toString.call(values) === '[object Array]') {
+			return SqlString.format(sql, values, this.config.stringifyObjects, this.config.timezone);
+		}
+
+		return sql.replace(/\:(\w+)/g, function (txt, key) {
+			if (values.hasOwnProperty(key)) {
+				return this.escape(values[key]);
+			} else {
+				return txt;
+			}
+
+		}.bind(this));
+	};
+
+	var connection = mysql.createConnection(connectionConfig);	
 
 	this.resetDatabase = function() {
 		if (config.environment === 'test') {

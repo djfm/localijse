@@ -12,7 +12,9 @@ function condition () {
 
 		var defaults = {left: 1, right: 1};
 		var ops 	 = {
-			'BETWEEN': {left: 1, right: 2, joinRight: ' AND '}
+			'BETWEEN': {left: 1, right: 2, joinRight: ' AND '},
+			'IS NULL': {left: 1, right: 0},
+			'IS NOT NULL': {left: 1, right: 0}
 		};
 		var op = assertion[0];
 		var settings = ops[op] || defaults;
@@ -23,7 +25,15 @@ function condition () {
 		var left 	= assertion.slice(1, 1 + settings.left).join(settings.joinLeft);
 		var right 	= assertion.slice(1 + settings.left, 1 + settings.left + settings.right).join(settings.joinRight);
 
-		return '(' + [left, op, right].join(' ') + ')';
+		var parts = [op];
+		if (left) {
+			parts.unshift(left);
+		}
+		if (right) {
+			parts.push(right);
+		}
+
+		return '(' + parts.join(' ') + ')';
 	}
 
 	if (Object.prototype.toString.call(arguments[1]) === '[object Function]') {

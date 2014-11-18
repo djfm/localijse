@@ -120,7 +120,7 @@ describe("Translations", function () {
 			locale: 'fr_FR'
 		}).then(function (paginator) {
 			paginator.totalCount.should.equal(1);
-			paginator.hits[0].message.shoul.equal('Save');
+			paginator.hits[0].message.should.equal('Save');
 			done();
 		}).fail(done);
 	});

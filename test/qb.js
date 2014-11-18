@@ -106,6 +106,8 @@ describe('Query builder', function () {
 		
 		qb.condition('=', 'a', 'b').toString().should.equal('(a = b)');
 		qb.condition('BETWEEN', 'a', '1', '2').toString().should.equal('(a BETWEEN 1 AND 2)');
+		qb.condition('IS NULL', 'a').toString().should.equal('(a IS NULL)');
+		qb.condition('IS NOT NULL', 'a').toString().should.equal('(a IS NOT NULL)');
 		qb.condition('true').toString().should.equal('true');
 		
 		qb.condition('and', function (and) {
