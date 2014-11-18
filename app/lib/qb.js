@@ -1,13 +1,70 @@
 var _ = require('underscore');
 
-function makeIdForTable (tableName) {
-	//CustomizedMessage
-	return tableName.replace(/([a-z]|[A-Z]+)([A-Z])/g, function (m, a, b) {
-		return a + '_' + b;
-	}).toLowerCase()+'_id';
+function condition () {
+	var type, nested, assertion, children = [];
+
+
+	function buildAssertion(assertion) {
+
+		if (assertion.length === 1) {
+			return assertion[0];
+		}
+
+		var defaults = {left: 1, right: 1};
+		var ops 	 = {
+			'BETWEEN': {left: 1, right: 2, joinRight: ' AND '}
+		};
+		var op = assertion[0];
+		var settings = ops[op] || defaults;
+
+		settings.joinLeft 	= settings.joinLeft 	|| ' ';
+		settings.joinRight 	= settings.joinRight 	|| ' ';
+
+		var left 	= assertion.slice(1, 1 + settings.left).join(settings.joinLeft);
+		var right 	= assertion.slice(1 + settings.left, 1 + settings.left + settings.right).join(settings.joinRight);
+
+		return '(' + [left, op, right].join(' ') + ')';
+	}
+
+	if (Object.prototype.toString.call(arguments[1]) === '[object Function]') {
+		type = arguments[0];
+		nested = arguments[1];
+
+		nested(function() {
+			children.push(condition.apply(undefined, arguments));
+		});
+
+	} else {
+		assertion = _.toArray(arguments);
+	}
+
+	function toString () {
+		if (!nested) {
+			return buildAssertion(assertion);
+		} else {
+			var nestedStrings = _.map(children, function (child) {
+				return child.toString();
+			});
+			if (type === 'and') {
+				return '(' + nestedStrings.join(' AND ') + ')';
+			} else if (type === 'or') {
+				return '(' + nestedStrings.join(' OR ') + ')';
+			} else {
+				throw new Error('Invalid nesting type, should be `and` or `or`, got `' + type + '`.');
+			}
+		}
+
+		return "NIY";
+	}
+
+	return {
+		toString: toString
+	};
 }
 
-function qb () {
+function qb (config) {
+
+	config = _.defaults((config || {}), qb.defaultConfig);
 
 	var type = null;
 	var select = [], from = [], joins = [], where = [], groupBy = [], orderBy = [];
@@ -82,14 +139,14 @@ function qb () {
 		return sql;
 	}
 
-	function join (joinWhich, owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause) {
+	function join (joinType, joinWhich, owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause) {
 
 		if (!referencedClause) {
 			referencedClause = referencedAlias + '.id';
 		}
 		
 		if (!owningClause) {
-			owningClause = owningAlias + '.' + qb.makeIdForTable(referencedTable);
+			owningClause = owningAlias + '.' + config.makeIdForTable(referencedTable);
 		}
 
 		var table;
@@ -106,7 +163,57 @@ function qb () {
 			}
 		}
 
-		joins.push('INNER JOIN ' + table + ' ON ' + referencedClause + ' = ' + owningClause);
+		joinType = joinType || 'INNER JOIN';
+
+		joins.push([joinType, table, 'ON', referencedClause, '=', owningClause].join(' '));
+	}
+
+	function joinReferenced (joinType, tableIntroduced, aliasOrField, maybeField) {
+		var referencedAlias = saveAlias(tableIntroduced);
+		var referencedTable = getTable(referencedAlias);
+
+		var owningTable, owningAlias;
+		var owningClause, referencedClause;
+
+		var m = /^(\w+)\.(\w+)$/.exec(aliasOrField.trim());
+		if (m) {
+			owningAlias 	= m[1];
+			owningTable 	= getTable(owningAlias);
+			owningClause 	= aliasOrField;
+		} else {
+			owningAlias = aliasOrField;
+			owningTable = getTable(owningAlias);
+		}
+
+		if (maybeField) {
+			joins.push([joinType, tableIntroduced, 'ON', maybeField, '=', aliasOrField].join(' '));
+		} else {
+			join(joinType, 'referenced', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause);
+		}
+	}
+
+	function joinOwning (joinType, tableIntroduced, aliasOrField, maybeField) {
+		var owningAlias = saveAlias(tableIntroduced);
+		var owningTable = getTable(owningAlias);
+
+		var referencedTable, referencedAlias;
+		var owningClause, referencedClause;
+
+		var m = /^(\w+)\.(\w+)$/.exec(aliasOrField.trim());
+		if (m) {
+			referencedAlias 	= m[1];
+			referencedTable 	= getTable(referencedAlias);
+			referencedClause 	= aliasOrField;
+		} else {
+			referencedAlias = aliasOrField;
+			referencedTable = getTable(referencedAlias);
+		}
+
+		if (maybeField) {
+			joins.push([joinType, tableIntroduced, 'ON', maybeField, '=', aliasOrField].join(' '));
+		} else {
+			join(joinType, 'owning', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause);
+		}
 	}
 
 	return {
@@ -143,29 +250,15 @@ function qb () {
 		 * join('B b', 'A') => INNER JOIN B b ON b.id = A.b_id
 		 */
 		joinReferenced: function (tableIntroduced, aliasOrField, maybeField) {
-
-			var referencedAlias = saveAlias(tableIntroduced);
-			var referencedTable = getTable(referencedAlias);
-
-			var owningTable, owningAlias;
-			var owningClause, referencedClause;
-
-			var m = /^(\w+)\.(\w+)$/.exec(aliasOrField.trim());
-			if (m) {
-				owningAlias 	= m[1];
-				owningTable 	= getTable(owningAlias);
-				owningClause 	= aliasOrField;
-			} else {
-				owningAlias = aliasOrField;
-				owningTable = getTable(owningAlias);
-			}
-
-			if (maybeField) {
-				joins.push('INNER JOIN ' + tableIntroduced + ' ON ' + maybeField + ' = ' + aliasOrField);
-			} else {
-				join('referenced', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause);
-			}
-
+			joinReferenced('INNER JOIN', tableIntroduced, aliasOrField, maybeField);
+			return this;
+		},
+		leftJoinReferenced: function (tableIntroduced, aliasOrField, maybeField) {
+			joinReferenced('LEFT JOIN', tableIntroduced, aliasOrField, maybeField);
+			return this;
+		},
+		rightJoinReferenced: function (tableIntroduced, aliasOrField, maybeField) {
+			joinReferenced('RIGHT JOIN', tableIntroduced, aliasOrField, maybeField);
 			return this;
 		},
 		/**
@@ -173,28 +266,15 @@ function qb () {
 		 * joined('B b', 'A') => INNER JOIN B b ON a.id = B.a_id
 		 */
 		joinOwning: function (tableIntroduced, aliasOrField, maybeField) {
-			var owningAlias = saveAlias(tableIntroduced);
-			var owningTable = getTable(owningAlias);
-
-			var referencedTable, referencedAlias;
-			var owningClause, referencedClause;
-
-			var m = /^(\w+)\.(\w+)$/.exec(aliasOrField.trim());
-			if (m) {
-				referencedAlias 	= m[1];
-				referencedTable 	= getTable(referencedAlias);
-				referencedClause 	= aliasOrField;
-			} else {
-				referencedAlias = aliasOrField;
-				referencedTable = getTable(referencedAlias);
-			}
-
-			if (maybeField) {
-				joins.push('INNER JOIN ' + tableIntroduced + ' ON ' + maybeField + ' = ' + aliasOrField);
-			} else {
-				join('owning', owningTable, owningAlias, referencedTable, referencedAlias, owningClause, referencedClause);
-			}
-
+			joinOwning('INNER JOIN', tableIntroduced, aliasOrField, maybeField);
+			return this;
+		},
+		leftJoinOwning: function (tableIntroduced, aliasOrField, maybeField) {
+			joinOwning('LEFT JOIN', tableIntroduced, aliasOrField, maybeField);
+			return this;
+		},
+		rightJoinOwning: function (tableIntroduced, aliasOrField, maybeField) {
+			joinOwning('RIGHT JOIN', tableIntroduced, aliasOrField, maybeField);
 			return this;
 		},
 		where: function () {
@@ -228,69 +308,14 @@ function qb () {
 	};
 }
 
-function condition () {
-	var type, nested, assertion, children = [];
-
-
-	function buildAssertion(assertion) {
-
-		if (assertion.length === 1) {
-			return assertion[0];
-		}
-
-		var defaults = {left: 1, right: 1};
-		var ops 	 = {
-			'BETWEEN': {left: 1, right: 2, joinRight: ' AND '}
-		};
-		var op = assertion[0];
-		var settings = ops[op] || defaults;
-
-		settings.joinLeft 	= settings.joinLeft 	|| ' ';
-		settings.joinRight 	= settings.joinRight 	|| ' ';
-
-		var left 	= assertion.slice(1, 1 + settings.left).join(settings.joinLeft);
-		var right 	= assertion.slice(1 + settings.left, 1 + settings.left + settings.right).join(settings.joinRight);
-
-		return '(' + [left, op, right].join(' ') + ')';
-	}
-
-	if (Object.prototype.toString.call(arguments[1]) === '[object Function]') {
-		type = arguments[0];
-		nested = arguments[1];
-
-		nested(function() {
-			children.push(condition.apply(undefined, arguments));
-		});
-
-	} else {
-		assertion = _.toArray(arguments);
-	}
-
-	function toString () {
-		if (!nested) {
-			return buildAssertion(assertion);
-		} else {
-			var nestedStrings = _.map(children, function (child) {
-				return child.toString();
-			});
-			if (type === 'and') {
-				return '(' + nestedStrings.join(' AND ') + ')';
-			} else if (type === 'or') {
-				return '(' + nestedStrings.join(' OR ') + ')';
-			} else {
-				throw new Error('Invalid nesting type, should be `and` or `or`, got `' + type + '`.');
-			}
-		}
-
-		return "NIY";
-	}
-
-	return {
-		toString: toString
-	};
-}
-
 qb.condition = condition;
-qb.makeIdForTable = makeIdForTable;
+
+qb.defaultConfig = {
+	makeIdForTable: function (tableName) {
+		return tableName.replace(/([a-z]|[A-Z]+)([A-Z])/g, function (m, a, b) {
+			return a + '_' + b;
+		}).toLowerCase()+'_id';
+	}
+};
 
 module.exports = qb;

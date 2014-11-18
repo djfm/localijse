@@ -2,15 +2,17 @@ require('chai').should();
 
 var qb = require('../app/lib/qb');
 
+var makeIdForTable = qb.defaultConfig.makeIdForTable;
+
 /* global describe, it */
 
-describe('Query builder', function () {
+describe.only('Query builder', function () {
 
 	describe('makeIdForTable', function () {
 		it('should convert CamelCase', function () {
-			qb.makeIdForTable('CamelCase').should.equal('camel_case_id');
-			qb.makeIdForTable('ACRONYMCamelCase').should.equal('acronym_camel_case_id');
-			qb.makeIdForTable('ABCdef').should.equal('ab_cdef_id');
+			makeIdForTable('CamelCase').should.equal('camel_case_id');
+			makeIdForTable('ACRONYMCamelCase').should.equal('acronym_camel_case_id');
+			makeIdForTable('ABCdef').should.equal('ab_cdef_id');
 		});
 	});
 
@@ -26,33 +28,57 @@ describe('Query builder', function () {
 	it('Should build a select with joins', function () {
 		qb()
 		.select('a.x')
-		.from('A')
-		.joinReferenced('B b', 'A')
-		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON b.id = A.b_id');
+		.from('A', 'a')
+		.joinReferenced('B b', 'a')
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON b.id = a.b_id');
 
 		qb()
 		.select('a.x')
-		.from('A')
-		.joinOwning('B b', 'A')
-		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON A.id = b.a_id');
+		.from('A', 'a')
+		.leftJoinReferenced('B b', 'a')
+		.getQuery().should.equal('SELECT a.x FROM A a LEFT JOIN B b ON b.id = a.b_id');
 
 		qb()
 		.select('a.x')
-		.from('A')
-		.joinOwning('B b', 'A.z')
-		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON A.z = b.a_id');
+		.from('A', 'a')
+		.rightJoinReferenced('B b', 'a')
+		.getQuery().should.equal('SELECT a.x FROM A a RIGHT JOIN B b ON b.id = a.b_id');
 
 		qb()
 		.select('a.x')
-		.from('A')
-		.joinReferenced('B b', 'A.b_id')
-		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON b.id = A.b_id');
+		.from('A', 'a')
+		.joinOwning('B b', 'a')
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON a.id = b.a_id');
 
 		qb()
 		.select('a.x')
-		.from('A')
-		.joinReferenced('B b', 'A.b_id', 'x.y')
-		.getQuery().should.equal('SELECT a.x FROM A INNER JOIN B b ON x.y = A.b_id');
+		.from('A', 'a')
+		.leftJoinOwning('B b', 'a')
+		.getQuery().should.equal('SELECT a.x FROM A a LEFT JOIN B b ON a.id = b.a_id');
+
+		qb()
+		.select('a.x')
+		.from('A', 'a')
+		.rightJoinOwning('B b', 'a')
+		.getQuery().should.equal('SELECT a.x FROM A a RIGHT JOIN B b ON a.id = b.a_id');
+
+		qb()
+		.select('a.x')
+		.from('A', 'a')
+		.joinOwning('B b', 'a.z')
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON a.z = b.a_id');
+
+		qb()
+		.select('a.x')
+		.from('A', 'a')
+		.joinReferenced('B b', 'a.b_id')
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON b.id = a.b_id');
+
+		qb()
+		.select('a.x')
+		.from('A', 'a')
+		.joinReferenced('B b', 'a.b_id', 'x.y')
+		.getQuery().should.equal('SELECT a.x FROM A a INNER JOIN B b ON x.y = a.b_id');
 
 		var parts = [
 			'SELECT cm.id, m.message',
