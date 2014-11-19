@@ -30,6 +30,8 @@ function find (connection, query) {
 	/**
 	 * Normalize query.path
 	 */
+	
+	query = _.clone(query);
 
 	if (!query.path) {
 		return q.reject(new Error('No path specified.'));
@@ -42,6 +44,9 @@ function find (connection, query) {
 	if (query.path.length < 1) {
 		return q.reject(new Error('Need to specify at least the vendor part of the path.'));
 	}
+
+	// root is always added implicitely so that everything stays nested under same level
+	query.path.unshift('root');
 
 	query.hitsPerPage = +(query.hitsPerPage || 0);
 	query.page = +(query.page || 0);

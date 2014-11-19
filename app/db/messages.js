@@ -83,6 +83,12 @@ function updateMessages (connection, messages) {
 		}
 	});
 
+	// root is always added implicitely so that everything stays nested under same level
+	cats = {
+		name: 'root',
+		children: [cats]
+	};
+
 	/* Enter the promise land */
 
 	// update the category tree

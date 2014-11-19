@@ -268,5 +268,25 @@ describe("Messages", function () {
 				done(err);
 			});
 		});
+
+		it("should add a message with plurality 2", function (done) {
+			localijse.updateMessages([{
+				path: 'a/b/c',
+				context: 'checkout',
+				message: 'You have %d products in your cart.',
+				plurality: 2
+			}]).then(function () {
+				return localijse.find({
+					path: 'a'
+				});
+			}).then(function (paginator) {
+				paginator.totalCount.should.equal(1);
+				paginator.hits[0].message.should.equal('You have %d products in your cart.');
+				paginator.hits[0].message_plurality.should.equal(2);
+				done();
+			}).fail(function (err) {
+				done(err);
+			});
+		});
 	});
 });
