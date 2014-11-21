@@ -3,6 +3,9 @@ var q 		= require('q');
 
 var mysqhelp = require('../lib/mysqhelp');
 
+/**
+ * For details on plural rules: https://developer.mozilla.org/en-US/docs/Mozilla/Localization/Localization_and_Plurals
+ */
 
 function normalizeLocale (locale) {
 	if (!locale) {

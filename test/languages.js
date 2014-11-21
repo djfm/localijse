@@ -67,4 +67,19 @@ describe("Languages", function () {
 		.then(localijse.findLanguage.bind(undefined, 'fr:fr'))
 		.get('name').should.become('Français').notify(done);
 	});
+
+	it("should store plural_rule and n_plurals", function (done) {
+		localijse.addLanguage({
+			locale: 'zz_ZZ',
+			name: 'Made Up',
+			plural_rule: 1,
+			n_plurals: 2
+		}).then(function () {
+			return localijse.findLanguage('zz-zz');
+		}).then(function (language) {
+			language.plural_rule.should.equal(1);
+			language.n_plurals.should.equal(2);
+			done();
+		}).fail(done);
+	});
 });

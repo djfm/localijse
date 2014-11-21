@@ -14,6 +14,14 @@ describe("Translations", function () {
 			name: 'Français (French)'
 		});
 	});
+	before(function () {
+		return localijse.addLanguage({
+			locale: 'zz_ZZ',
+			name: 'Imaginaire (Made-up)',
+			plural_rule: 1,
+			n_plurals: 2
+		});
+	});
 
 	var contextualized_message_id, user;
 	
@@ -29,6 +37,11 @@ describe("Translations", function () {
 		path: 'Vendor/FirstProject/V2/Admin',
 		context: 'title',
 		message: 'Welcome!'
+	},{
+		path: 'Vendor/SecondProject/V1/Front',
+		plurality: 2,
+		context: 'zoology',
+		message: 'animals'
 	}];
 
 	before(function () {
@@ -115,12 +128,24 @@ describe("Translations", function () {
 
 	it("should find one message missing a translation in French", function (done) {
 		localijse.find({
-			path: 'Vendor/',
+			path: 'Vendor/FirstProject',
 			hasTranslation: false,
 			locale: 'fr_FR'
 		}).then(function (paginator) {
 			paginator.totalCount.should.equal(1);
 			paginator.hits[0].message.should.equal('Save');
+			done();
+		}).fail(done);
+	});
+
+	xit("should find 1 plural message missing a translation in Made-up (that requires 2 plurals)", function (done) {
+		localijse.find({
+			path: 'Vendor/SecondProject',
+			hasTranslation: false,
+			locale: 'zz_ZZ'
+		}).then(function (paginator) {
+			paginator.totalCount.should.equal(1);
+			paginator.hits[0].message.should.equal('animals');
 			done();
 		}).fail(done);
 	});

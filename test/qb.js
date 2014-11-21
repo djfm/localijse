@@ -120,7 +120,6 @@ describe('Query builder', function () {
 			and('or', function (or) {
 				or('>', 'y', '2');
 				or('<', 'z', '3');
-
 			});
 		}).toString().should.equal('((x < 1) AND ((y > 2) OR (z < 3)))');
 	});
