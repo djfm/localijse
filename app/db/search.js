@@ -104,11 +104,18 @@ function find (connection, query) {
 					sql.groupBy('map.id');
 				}
 			} else {
-				sql.leftJoinOwning('Mapping map', 'cm');
+				sql.leftJoin('Plural p', 'cm.is_plural', 'p.is_plural');
+				sql.leftJoinOwning('Mapping map', 'cm', function (cond) {
+					cond('and', function (and) {
+						and('=', 'map.is_plural', 'p.is_plural');
+						and('=', 'map.plurality', 'p.plurality');
+					});
+				});
 				sql.leftJoinReferenced('MappingVersion v', 'map');
 				sql.leftJoinReferenced('Translation t', 'v');
-				sql.leftJoinReferenced('Language l', 't', function (condition) {
-					condition('=', 'l.locale', ':locale');
+				sql.leftJoinReferenced('Language l', 't', function (cond) {
+					cond('=', 'l.locale', ':locale');
+					cond('=', 'l.id', 'p.language_id');
 				});
 
 				sql.where('IS NULL', 't.id');
@@ -121,6 +128,7 @@ function find (connection, query) {
 			sql.select('cm.id as contextualized_message_id', 'cm.is_plural as is_plural');
 			sql.select('m.message');
 			sql.limit(query.hitsPerPage).offset((query.page - 1) * query.hitsPerPage);
+			sql.orderBy('MIN(c.position)');
 		}
 
 		if (query.message) {
@@ -129,9 +137,6 @@ function find (connection, query) {
 				params.message = query.message;
 			}
 		}
-
-		//sql.orderBy('MIN(c.position)');
-		// console.log(sql.toString());
 
 		return {
 			sql: sql,

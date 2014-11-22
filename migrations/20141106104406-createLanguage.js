@@ -7,7 +7,7 @@ exports.up = function(db, callback) {
 		locale VARCHAR (16), \
 		name VARCHAR (255), \
 		plural_rule TINYINT UNSIGNED NULL, \
-		n_plurals TINYINT UNSIGNED NULL, \
+		n_plurals TINYINT UNSIGNED NOT NULL DEFAULT 1, \
 		CONSTRAINT UNIQUE KEY (locale) \
 	) ENGINE INNODB, CHARACTER SET utf8, COLLATE utf8_bin";
 

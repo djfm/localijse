@@ -32,7 +32,8 @@ function addTranslation (connection, user, contextualizedMessageId, data) {
 
 	var contextualized_message_id = contextualizedMessageId.contextualized_message_id || contextualizedMessageId;
 	var language_id, translation_id, mapping_status_id, mapping_version_id, mapping_id;
-	var plurality = normalizePlurality(data.plurality, true);
+	var plurality = normalizePlurality(data.plurality);
+	var is_plural = plurality > 0 ? 1 : 0;
 
 	return user.checkAllowedToTranslate(locale)
 	/**
@@ -76,6 +77,7 @@ function addTranslation (connection, user, contextualizedMessageId, data) {
 			{
 				contextualized_message_id: contextualized_message_id,
 				language_id: language_id,
+				is_plural: is_plural,
 				plurality: plurality
 			},
 			{

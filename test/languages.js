@@ -28,7 +28,9 @@ describe("Languages", function () {
 			name: ' Français (French) '
 		}).should.deep.equal({
 			locale: 'fr_FR',
-			name: 'Français (French)'
+			name: 'Français (French)',
+			n_plurals: 2,
+			plural_rule: null
 		});
 
 		expect(languages.normalizeLanguage({
@@ -61,14 +63,11 @@ describe("Languages", function () {
 			locale: 'fr-fr',
 			name: ' Français'
 		})
-		.then(function (languageId) {
-			languageId.should.equal(1);
-		})
 		.then(localijse.findLanguage.bind(undefined, 'fr:fr'))
 		.get('name').should.become('Français').notify(done);
 	});
 
-	it("should store plural_rule and n_plurals", function (done) {
+	it("should store plural_rule, n_plurals, and create Plural entries", function (done) {
 		localijse.addLanguage({
 			locale: 'zz_ZZ',
 			name: 'Made Up',
@@ -79,7 +78,9 @@ describe("Languages", function () {
 		}).then(function (language) {
 			language.plural_rule.should.equal(1);
 			language.n_plurals.should.equal(2);
+			language.plurals.should.deep.equal([[0,0], [1, 1], [1, 2]]);
 			done();
-		}).fail(done);
+		})
+		.fail(done);
 	});
 });

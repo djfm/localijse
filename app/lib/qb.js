@@ -280,7 +280,7 @@ function qb (config) {
 		}
 	}
 
-	return {
+	var queryBuilder =  {
 		select: function () {
 
 			type = type || 'select';
@@ -325,6 +325,7 @@ function qb (config) {
 			joinReferenced('RIGHT JOIN', tableIntroduced, aliasOrField, fieldOrConditionBuilder, maybeConditionBuilder);
 			return this;
 		},
+
 		/**
 		 * Joins a table, with tableIntroduced being interpreted as the owning side, i.e.:
 		 * joined('B b', 'A') => INNER JOIN B b ON a.id = B.a_id
@@ -370,6 +371,12 @@ function qb (config) {
 			return this.getQuery();
 		}
 	};
+
+	queryBuilder.join = queryBuilder.joinReferenced;
+	queryBuilder.leftJoin = queryBuilder.leftJoinReferenced;
+	queryBuilder.rightJoin = queryBuilder.rightJoinReferenced;
+
+	return queryBuilder;
 }
 
 qb.condition = condition;
