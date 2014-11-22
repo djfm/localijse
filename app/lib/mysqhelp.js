@@ -95,16 +95,16 @@ function upsert (connection, tableName, keyFields, valueFields) {
 
 	var sql;
 
+	var params = [tableName].concat(allColumns).concat(allValues);
+
 	if (valueColumns.length > 0) {
 		sql = "INSERT INTO ?? " + toColumnPlaceHolders(allColumns) + " VALUES " + toValuePlaceHolders(allValues);
-		sql = sql + " ON DUPLICATE KEY UPDATE " + toEqPlaceHolders(valueColumns);
+		sql = sql + " ON DUPLICATE KEY UPDATE ?";
+		params.push(valueFields);
 	} else {
 		sql = "INSERT IGNORE INTO ?? " + toColumnPlaceHolders(allColumns) + " VALUES " + toValuePlaceHolders(allValues);
 	}
 	
-
-	var params = [tableName].concat(allColumns).concat(allValues).concat(toColumnsAndValues(valueColumns, valueFields));
-
 	return query(connection, sql, params).then(function (res) {
 		if (res.insertId > 0) {
 			return q(res.insertId);
