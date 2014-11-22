@@ -37,7 +37,7 @@ function Localijse(config) {
 		}.bind(this));
 	};
 
-	var connection = mysql.createConnection(connectionConfig);	
+	var connectionPool = mysql.createPool(_.extend(connectionConfig, {connectionLimit: 2}));
 
 	this.resetDatabase = function() {
 		if (config.environment === 'test') {
@@ -67,25 +67,48 @@ function Localijse(config) {
 		}
 	};
 
-	// Proxy'ed functions:
+	var proxiedFunctionsNeedingConnection = [
+		[categories, ['addCategoryPath', 'addCategoryTree', 'getCategoryTree']],
+		[search, ['find']],
+		[messages, ['updateMessages']],
+		[languages, ['addLanguage', 'findLanguage']],
+		[translations, ['addTranslation']],
+		[users, ['addUser', 'findUser']],
+		[mappingStatuses, ['getMappingStatusId']]
+	];
 
-	this.addCategoryPath 	= categories.addCategoryPath.bind(undefined, connection);
-	this.addCategoryTree 	= categories.addCategoryTree.bind(undefined, connection);
-	this.getCategoryTree 	= categories.getCategoryTree.bind(undefined, connection);
+	/**
+	 * Proxy module functionality
+	 */
 
-	this.find	 			= search.find.bind(undefined, connection);
-	
-	this.updateMessages  	= messages.updateMessages.bind(undefined, connection);
-	
-	this.addLanguage 		= languages.addLanguage.bind(undefined, connection);
-	this.findLanguage 		= languages.findLanguage.bind(undefined, connection);
+	var that = this;
+	_.each(proxiedFunctionsNeedingConnection, function (moduleAndFunctions) {
+		var mod = moduleAndFunctions[0];
+		_.each(moduleAndFunctions[1], function (fun) {
+			that[fun] = function () {
 
-	this.addTranslation 	= translations.addTranslation.bind(undefined, connection);
+				var d = q.defer();
 
-	this.addUser			= users.addUser.bind(undefined, connection);
-	this.findUser			= users.findUser.bind(undefined, connection);
+				var args = _.toArray(arguments);
 
-	this.getMappingStatusId	= mappingStatuses.getMappingStatusId.bind(undefined, connection);
+				connectionPool.getConnection(function (err, connection) {
+					if (err) {
+						d.reject(err);
+					} else {
+						args.unshift(connection);
+						mod[fun].apply(undefined, args).then(function (value) {
+							connection.release();
+							d.resolve(value);
+						}, function (err) {
+							d.reject(err);
+						});
+					}
+				});
+
+				return d.promise;
+			};
+		});
+	});
 }
 
 exports.init = function (environment) {

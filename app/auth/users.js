@@ -26,7 +26,7 @@ function User (data) {
 
 		var that = this;
 
-		return mysqhelp.upsert(connection, 'User', _.pick(data, 'username'))
+		return mysqhelp.upsert(connection, 'User', _.pick(data, 'username', 'email'))
 		.then(function (userId) {
 			data.id = userId;
 			return q(that);
@@ -55,7 +55,7 @@ function findUser (connection, query) {
 		query = {username: query};
 	}
 
-	query = _.pick(query, 'username', 'id');
+	query = _.pick(query, 'id', 'username', 'email');
 
 	return mysqhelp.query(connection, 'SELECT * FROM User WHERE ?', [query])
 	.then(function (rows) {
