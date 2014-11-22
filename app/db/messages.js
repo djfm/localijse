@@ -5,14 +5,8 @@ var categories  = require('../db/categories');
 var treeHelper 	= require('../lib/tree-helper');
 var mysqhelp 	= require('../lib/mysqhelp');
 
-function normalizePlurality (plurality, forTranslation) {
-	if (!plurality) {
-		return 0;
-	} else if (+plurality > 1) {
-		return forTranslation ? +plurality : 2;
-	} else {
-		return 1;
-	}
+function normalizeIsPlural (is_plural) {
+	return is_plural ? 1 : 0;
 }
 
 function normalizeMessage (obj) {
@@ -37,7 +31,7 @@ function normalizeMessage (obj) {
 		return null;
 	}
 
-	obj.plurality = normalizePlurality(obj.plurality);
+	obj.is_plural = normalizeIsPlural(obj.is_plural);
 
 	return obj;
 }
@@ -53,11 +47,7 @@ function normalizeMessage (obj) {
  * 					the path needs to have a least 3 elements
  * 		message: 	a string
  * 		context: 	a string, optional, defaults to ''
- * 		plurality:  optional, the plurality of the message:
- * 					- 0 if plurality is not to be taken into account
- * 					- 1 for singular case
- * 					- 2 for plural case
- * 					defaults to 0, falsey values are normalized to null, numbers > 1 are normalized to 2, anything else treated as 1
+ * 		is_plural:  optional, the plurality of the message, boolean defaults to false
  * 					
  * }
  * 
@@ -160,7 +150,7 @@ function insertMessages(connection, data) {
 					vendor_id: data.vendorId,
 					message_id: messageId,
 					context: message.context,
-					plurality: message.plurality
+					is_plural: message.is_plural
 				});
 			})
 			// insert into classification
@@ -178,4 +168,4 @@ function insertMessages(connection, data) {
 
 exports.updateMessages = updateMessages;
 exports.normalizeMessage = normalizeMessage;
-exports.normalizePlurality = normalizePlurality;
+exports.normalizeIsPlural = normalizeIsPlural;

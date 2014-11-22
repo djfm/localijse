@@ -96,7 +96,7 @@ function find (connection, query) {
 					sql.joinReferenced('User uc', 'v.created_by');
 					sql.joinReferenced('User ur', 'v.reviewed_by');
 					sql.select('st.name as status');
-					sql.select('map.plurality as translation_plurality');
+					sql.select('map.plurality');
 					sql.select('t.translation');
 					sql.select('uc.username as created_by', 'ur.username as reviewed_by');
 					sql.select('v.created_at');
@@ -118,7 +118,7 @@ function find (connection, query) {
 		if (forCount) {
 			sql.select('count(DISTINCT cm.id) as totalCount');
 		} else {
-			sql.select('cm.id as contextualized_message_id', 'cm.plurality as message_plurality');
+			sql.select('cm.id as contextualized_message_id', 'cm.is_plural as is_plural');
 			sql.select('m.message');
 			sql.limit(query.hitsPerPage).offset((query.page - 1) * query.hitsPerPage);
 		}

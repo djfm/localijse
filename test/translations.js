@@ -6,7 +6,7 @@ chai.should();
 
 var localijse = require('../app/localijse').init('test');
 
-describe("Translations", function () {
+xdescribe("Translations", function () {
 	before(localijse.resetDatabase);
 	before(function () {
 		return localijse.addLanguage({
@@ -138,7 +138,9 @@ describe("Translations", function () {
 		}).fail(done);
 	});
 
-	xit("should find 1 plural message missing a translation in Made-up (that requires 2 plurals)", function (done) {
+	var zz;
+
+	it("should find 1 plural message missing all translations in Made-up (that requires 2 plurals)", function (done) {
 		localijse.find({
 			path: 'Vendor/SecondProject',
 			hasTranslation: false,
@@ -146,7 +148,30 @@ describe("Translations", function () {
 		}).then(function (paginator) {
 			paginator.totalCount.should.equal(1);
 			paginator.hits[0].message.should.equal('animals');
+			zz = paginator.hits[0].contextualized_message_id;
 			done();
 		}).fail(done);
 	});
+
+	xit("should find 1 plural message missing 1 translation in Made-up (that requires 2 plurals)", function (done) {
+		localijse.addTranslation(user, zz, {
+			locale: 'zz_ZZ',
+			translation: 'animaux',
+			mappingStatus: 'translated',
+			plurality: 2
+		}).then(function () {
+			return localijse.find({
+				path: 'Vendor/SecondProject',
+				hasTranslation: false,
+				locale: 'zz_ZZ'
+			});
+		}).then(function (paginator) {
+			paginator.totalCount.should.equal(1);
+			paginator.hits[0].message.should.equal('animals');
+			zz = paginator.hits[0].contextualized_message_id;
+			done();
+		}).fail(done);
+	});
+
+
 });

@@ -17,7 +17,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 0
+				is_plural: 0
 			};
 			messages.normalizeMessage(message).should.deep.equal(message);
 		});
@@ -27,14 +27,14 @@ describe("Messages", function () {
 				path: ['vendor'],
 				context: 'button',
 				message: 'Save',
-				plurality: null
+				is_plural: null
 			})).to.be.null;
 
 			expect(messages.normalizeMessage({
 				path: 'vendor/project',
 				context: 'button',
 				message: 'Save',
-				plurality: null
+				is_plural: null
 			})).to.be.null;
 		});
 		it("Should reject a message missing a valid path", function () {
@@ -59,7 +59,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 0
+				is_plural: 0
 			});
 
 			messages.normalizeMessage({
@@ -70,7 +70,7 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 0
+				is_plural: 0
 			});
 		});
 
@@ -83,79 +83,79 @@ describe("Messages", function () {
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 0
+				is_plural: 0
 			});
 
 			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
-				plurality: 1
+				is_plural: 1
 			}).should.deep.equal({
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 1
+				is_plural: 1
 			});
 
 			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
-				plurality: false
+				is_plural: false
 			}).should.deep.equal({
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 0
+				is_plural: 0
 			});
 
 			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
-				plurality: 42
+				is_plural: 42
 			}).should.deep.equal({
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 2
+				is_plural: 1
 			});
 
 			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
-				plurality: 0
+				is_plural: 0
 			}).should.deep.equal({
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 0
+				is_plural: 0
 			});
 
 			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
-				plurality: true
+				is_plural: true
 			}).should.deep.equal({
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 1
+				is_plural: 1
 			});
 
 			messages.normalizeMessage({
 				path: 'vendor/project/version',
 				context: 'button',
 				message: 'Save',
-				plurality: {}
+				is_plural: {}
 			}).should.deep.equal({
 				path: ['vendor', 'project', 'version'],
 				context: 'button',
 				message: 'Save',
-				plurality: 1
+				is_plural: 1
 			});
 		});
 	});
@@ -269,12 +269,12 @@ describe("Messages", function () {
 			});
 		});
 
-		it("should add a message with plurality 2", function (done) {
+		it("should add a message with plurality", function (done) {
 			localijse.updateMessages([{
 				path: 'a/b/c',
 				context: 'checkout',
 				message: 'You have %d products in your cart.',
-				plurality: 2
+				is_plural: 1
 			}]).then(function () {
 				return localijse.find({
 					path: 'a'
@@ -282,7 +282,7 @@ describe("Messages", function () {
 			}).then(function (paginator) {
 				paginator.totalCount.should.equal(1);
 				paginator.hits[0].message.should.equal('You have %d products in your cart.');
-				paginator.hits[0].message_plurality.should.equal(2);
+				paginator.hits[0].is_plural.should.equal(1);
 				done();
 			}).fail(function (err) {
 				done(err);

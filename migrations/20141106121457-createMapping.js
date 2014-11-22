@@ -8,10 +8,12 @@ exports.up = function(db, callback) {
 		language_id INT UNSIGNED NOT NULL, \
 		plurality TINYINT UNSIGNED NOT NULL, \
 		mapping_version_id INT UNSIGNED NOT NULL, \
+		KEY (language_id, plurality), \
 		UNIQUE KEY (contextualized_message_id, language_id, plurality), \
 		UNIQUE KEY (mapping_version_id), \
 		CONSTRAINT FOREIGN KEY (contextualized_message_id) REFERENCES ContextualizedMessage (id), \
 		CONSTRAINT FOREIGN KEY (language_id) REFERENCES Language (id), \
+		CONSTRAINT FOREIGN KEY (language_id, plurality) REFERENCES Plural (language_id, plurality), \
 		CONSTRAINT FOREIGN KEY (mapping_version_id) REFERENCES MappingVersion (id) \
 	) ENGINE INNODB, CHARACTER SET utf8, COLLATE utf8_bin;";
 

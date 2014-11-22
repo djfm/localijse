@@ -1,10 +1,18 @@
 var q 			= require('q');
-var _ 			= require('underscore');
 
 var languages 			= require('../db/languages');
-var messages 			= require('../db/messages');
 var mappingStatuses 	= require('../db/mapping-statuses');
 var mysqhelp 			= require('../lib/mysqhelp');
+
+function normalizePlurality (plurality) {
+	if (!plurality) {
+		return 0;
+	} else if (+plurality > 1) {
+		return +plurality;
+	} else {
+		return 1;
+	}
+}
 
 function addTranslation (connection, user, contextualizedMessageId, data) {
 
@@ -24,7 +32,7 @@ function addTranslation (connection, user, contextualizedMessageId, data) {
 
 	var contextualized_message_id = contextualizedMessageId.contextualized_message_id || contextualizedMessageId;
 	var language_id, translation_id, mapping_status_id, mapping_version_id, mapping_id;
-	var plurality = messages.normalizePlurality(data.plurality, true);
+	var plurality = normalizePlurality(data.plurality, true);
 
 	return user.checkAllowedToTranslate(locale)
 	/**
