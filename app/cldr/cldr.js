@@ -147,7 +147,7 @@ function loadLanguage (locale, lang, supp) {
 			} else if (plurals[lang]) {
 				language.n_plurals = _.size(plurals[lang]);
 			} else {
-				language.n_plurals = null;
+				language.n_plurals = 2;
 			}
 		})
 	]).then(function () {
@@ -166,7 +166,7 @@ function listLanguages () {
 		} else {
 			var pending = [];
 			_.each(entries, function (entry) {
-				var m = /^(\w+)(?:\-([a-zA-Z]+))?$/.exec(entry);
+				var m = /^(\w+)\-([a-zA-Z]+)$/.exec(entry);
 				if (m) {
 					pending.push(loadLanguage(m[0], m[1], m[2]));
 				}

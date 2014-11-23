@@ -71,7 +71,7 @@ function Localijse(config) {
 		[categories, ['addCategoryPath', 'addCategoryTree', 'getCategoryTree']],
 		[search, ['find']],
 		[messages, ['updateMessages']],
-		[languages, ['addLanguage', 'findLanguage']],
+		[languages, ['addLanguage', 'findLanguage', 'loadLanguagesIfTableEmpty', 'countLanguages']],
 		[translations, ['addTranslation']],
 		[users, ['addUser', 'findUser']],
 		[mappingStatuses, ['getMappingStatusId']]

@@ -2,6 +2,7 @@ var _ 		= require('underscore');
 var q 		= require('q');
 
 var mysqhelp = require('../lib/mysqhelp');
+var cldr     = require('../cldr/cldr');
 
 /**
  * For details on plural rules: https://developer.mozilla.org/en-US/docs/Mozilla/Localization/Localization_and_Plurals
@@ -43,11 +44,11 @@ function normalizeLanguage (language) {
 	return language;
 }
 
-function addLanguage (connection, language) {
-	language = normalizeLanguage(language);
+function addLanguage (connection, lang) {
+	var language = normalizeLanguage(lang);
 
 	if (!language) {
-		return q.reject('Invalid language.');
+		throw new Error('Invalid language: ' + JSON.stringify(lang));
 	}
 
 	return mysqhelp.upsert(
@@ -103,7 +104,32 @@ function findLanguage (connection, locale) {
 	});
 }
 
+function countLanguages (connection) {
+	return mysqhelp.query(connection, 'SELECT count(*) as n FROM Language').get(0).get('n');
+}
+
+function loadLanguagesIfTableEmpty (connection) {
+	return countLanguages(connection)
+	.then(function (n) {
+		if (n === 0) {
+			return cldr.loadLanguages().then(function (languages) {
+				return languages.reduce(function (soFar, language) {
+					return soFar.then(function () {
+						return addLanguage(connection, language);
+					});
+				}, q(null)).then(function () {
+					return true;
+				});
+			});
+		} else {
+			return false;
+		}
+	});
+}
+
 exports.normalizeLanguage = normalizeLanguage;
 exports.normalizeLocale = normalizeLocale;
 exports.addLanguage = addLanguage;
 exports.findLanguage = findLanguage;
+exports.countLanguages = countLanguages;
+exports.loadLanguagesIfTableEmpty = loadLanguagesIfTableEmpty;

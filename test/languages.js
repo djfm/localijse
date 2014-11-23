@@ -83,4 +83,17 @@ describe("Languages", function () {
 		})
 		.fail(done);
 	});
+
+	describe("Autoloading", function () {
+		before(localijse.resetDatabase);
+
+		it("should load the languages taking the data from the CLDR", function (done) {
+
+			this.timeout(15000);
+
+			localijse.loadLanguagesIfTableEmpty()
+			.then(localijse.countLanguages)
+			.should.eventually.be.above(100).notify(done);
+		});
+	});
 });
