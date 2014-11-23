@@ -95,5 +95,10 @@ describe("Languages", function () {
 			.then(localijse.countLanguages)
 			.should.eventually.be.above(100).notify(done);
 		});
+
+		it("should not load the languages if they're here already", function (done) {
+			localijse.loadLanguagesIfTableEmpty()
+			.should.eventually.equal(false).notify(done);
+		});
 	});
 });
